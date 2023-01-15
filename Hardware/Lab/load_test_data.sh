@@ -2,9 +2,9 @@ if [ -n "$1" ]
 then
     if [ "$1" = "Emulator" ]
     then
-        cp ../../Emulator/inst.asm ./src/main/resource/inst.asm
-        cp ../../Emulator/inst.hex ./src/main/resource/inst.hex
-	    cp ../../Emulator/data.hex ./src/main/resource/data.hex
+        cp ../../Emulator/test_code/inst.asm ./src/main/resource/inst.asm
+        cp ../../Emulator/test_code/inst.hex ./src/main/resource/inst.hex
+	    cp ../../Emulator/test_code/data.hex ./src/main/resource/data.hex
     elif [ "$1" = "-s" ]
     then
         cp ../../riscv-test/out/asm/rv32ui_SingleTest-$2.asm ./src/main/resource/inst.asm
