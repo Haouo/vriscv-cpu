@@ -13,7 +13,7 @@
 RVTEST_RV32U
 
   #-------------------------------------------------------------
-  # IF rs - MEM rd Data Hazard tests
+  # ID rs - WB rd Data Hazard tests
   #-------------------------------------------------------------
 ## rs1 - rd
 test1:
@@ -38,7 +38,7 @@ test2:
   beq x0, x0, fail
   
   #-------------------------------------------------------------
-  # IF rs - EXE rd Data Hazard tests
+  # ID rs - MEM rd Data Hazard tests
   #-------------------------------------------------------------
 ## rs1 - rd
 test3:
@@ -63,7 +63,7 @@ test4:
   beq x0, x0, fail
 
   #-------------------------------------------------------------
-  # IF rs - ID rd Data Hazard tests
+  # ID rs - EXE rd Data Hazard tests
   #-------------------------------------------------------------
 ## rs1 - rd
 test5:
@@ -86,7 +86,7 @@ test6:
   beq x0, x0, fail
 
   #-------------------------------------------------------------
-  # IF rs - ID rd (Memory Access) Data Hazard tests
+  # EXE rs - MEM rd (Memory Access) Data Hazard tests
   #-------------------------------------------------------------
 ## rs1 - rd
 test7:

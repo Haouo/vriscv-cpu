@@ -59,9 +59,8 @@ object alu_op_map {
 
 object pc_sel_map {
   val IF_PC_PLUS_4 = 0.U    // IF stage PC + 4
-  val IF_P_T_PC = 1.U       // IF stage Predict Target PC
-  val EXE_PC_PLUS_4 = 2.U   // EXE stage PC + 4
-  val EXE_T_PC = 3.U        // EXE stage Target PC
+  val EXE_PC_PLUS_4 = 1.U   // EXE stage PC + 4
+  val EXE_T_PC = 2.U        // EXE stage Target PC
 }
 
 object wb_sel_map {

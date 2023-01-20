@@ -30,13 +30,10 @@ class Controller(memAddrWidth: Int) extends Module {
     val E_BrEq = Input(Bool())
     val E_BrLT = Input(Bool())
 
-    // Branch Prediction
-    val BP_taken = Input(Bool())
     val E_Branch_taken = Output(Bool())
     val E_En = Output(Bool())
 
     val ID_pc = Input(UInt(memAddrWidth.W))
-    val EXE_BP_taken = Input(Bool())
     val EXE_target_pc = Input(UInt(memAddrWidth.W))
 
     // Flush
@@ -75,10 +72,10 @@ class Controller(memAddrWidth: Int) extends Module {
   })
   // Inst Decode for each stage 
   val IF_opcode = io.IF_Inst(6, 0)
-  val IF_rs1 = io.IF_Inst(19,15)     //  lab10_2
-  val IF_rs2 = io.IF_Inst(24,20)     //  lab10_2
 
   val ID_opcode = io.ID_Inst(6, 0)
+  val ID_rs1 = io.ID_Inst(19,15)
+  val ID_rs2 = io.ID_Inst(24,20)
 
   val EXE_opcode = io.EXE_Inst(6, 0)
   val EXE_funct3 = io.EXE_Inst(14, 12)
@@ -86,10 +83,9 @@ class Controller(memAddrWidth: Int) extends Module {
 
   val MEM_opcode = io.MEM_Inst(6, 0)
   val MEM_funct3 = io.MEM_Inst(14, 12)
-  val MEM_rd = io.MEM_Inst(11, 7)      //  lab10_2
 
   val WB_opcode = io.WB_Inst(6, 0)
-
+  val WB_rd = io.WB_Inst(11, 7)
 
   // Control signal - Branch/Jump
   val E_En = Wire(Bool())
@@ -106,11 +102,7 @@ class Controller(memAddrWidth: Int) extends Module {
 
   // pc predict miss signal
   val Predict_Miss = Wire(Bool())
-  Predict_Miss := (E_En && ((io.EXE_BP_taken =/= E_Branch_taken) || (E_Branch_taken && io.ID_pc=/=io.EXE_target_pc)))
-  
-  // Control signal - Branch Prediction (Lab12)
-  val BP_En = Wire(Bool()) // Branch Predict Enable
-  BP_En := (IF_opcode===BRANCH)    // To Be Modified
+  Predict_Miss := (E_En && E_Branch_taken && io.ID_pc=/=io.EXE_target_pc)
 
   // Control signal - PC
   when(Predict_Miss){
@@ -177,38 +169,32 @@ class Controller(memAddrWidth: Int) extends Module {
   io.vector_W_WBSel  := 0.U
 
   /****************** Data Hazard ******************/
-  // Use rs in IF stage 
-  val is_F_use_rs1 = Wire(Bool()) 
-  val is_F_use_rs2 = Wire(Bool())
-  is_F_use_rs1 := MuxLookup(IF_opcode,false.B,Seq(
+  // Use rs in ID stage 
+  val is_D_use_rs1 = Wire(Bool()) 
+  val is_D_use_rs2 = Wire(Bool())
+  is_D_use_rs1 := MuxLookup(ID_opcode,false.B,Seq(
     BRANCH -> true.B,
   ))   // To Be Modified
-  is_F_use_rs2 := MuxLookup(IF_opcode,false.B,Seq(
+  is_D_use_rs2 := MuxLookup(ID_opcode,false.B,Seq(
     BRANCH -> true.B,
   ))   // To Be Modified
 
-  // Use rd in ID stage 
-
-  // Use rd in EXE stage
-
-  // Use rd in MEM stage
-  val is_M_use_rd = Wire(Bool())
-  is_M_use_rd := MuxLookup(MEM_opcode,false.B,Seq(
+  // Use rd in WB stage
+  val is_W_use_rd = Wire(Bool())
+  is_W_use_rd := MuxLookup(WB_opcode,false.B,Seq(
     OP_IMM -> true.B,
   ))   // To Be Modified
 
   // Hazard condition (rd, rs overlap)
-  val is_F_rs1_M_rd_overlap = Wire(Bool())
-  val is_F_rs2_M_rd_overlap = Wire(Bool())
+  val is_D_rs1_W_rd_overlap = Wire(Bool())
+  val is_D_rs2_W_rd_overlap = Wire(Bool())
 
-  is_F_rs1_M_rd_overlap := is_F_use_rs1 && is_M_use_rd && (IF_rs1 === MEM_rd) && (MEM_rd =/= 0.U(5.W))
-  is_F_rs2_M_rd_overlap := is_F_use_rs2 && is_M_use_rd && (IF_rs2 === MEM_rd) && (MEM_rd =/= 0.U(5.W))
+  is_D_rs1_W_rd_overlap := is_D_use_rs1 && is_W_use_rd && (ID_rs1 === WB_rd) && (WB_rd =/= 0.U(5.W))
+  is_D_rs2_W_rd_overlap := is_D_use_rs2 && is_W_use_rd && (ID_rs2 === WB_rd) && (WB_rd =/= 0.U(5.W))
  
-  // WB Hazard (rs2, rs1) - to stage Reg
-
   // Control signal - Stall
   // Stall for Data Hazard
-  io.Stall_DH := (is_F_rs1_M_rd_overlap || is_F_rs2_M_rd_overlap)
+  io.Stall_DH := (is_D_rs1_W_rd_overlap || is_D_rs2_W_rd_overlap)
   io.Stall_MA := false.B // Stall for Waiting Memory Access
   // Control signal - Flush
   io.Flush := Predict_Miss

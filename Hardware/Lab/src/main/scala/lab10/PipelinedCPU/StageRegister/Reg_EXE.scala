@@ -9,7 +9,6 @@ class Reg_EXE(addrWidth:Int) extends Module {
         val Stall = Input(Bool())
         
         val inst_in = Input(UInt(32.W))
-        val BP_taken_in = Input(Bool())
         val pc_in = Input(UInt(addrWidth.W))
         val rs1_rdata_in = Input(UInt(32.W))
         val rs2_rdata_in = Input(UInt(32.W))
@@ -17,7 +16,6 @@ class Reg_EXE(addrWidth:Int) extends Module {
         
 
         val inst = Output(UInt(32.W))
-        val BP_taken = Output(Bool())
         val pc = Output(UInt(addrWidth.W))
         val rs1_rdata = Output(UInt(32.W))
         val rs2_rdata = Output(UInt(32.W))
@@ -39,7 +37,6 @@ class Reg_EXE(addrWidth:Int) extends Module {
     val rs2Reg = RegInit(0.U(32.W))
     val v_rs1Reg = RegInit(0.U(512.W))
     val v_rs2Reg = RegInit(0.U(512.W))
-    val BP_taken_Reg =  RegInit(false.B)
 
     /*** stage Registers Action ***/
     when(io.Stall){
@@ -50,7 +47,6 @@ class Reg_EXE(addrWidth:Int) extends Module {
         rs2Reg := rs2Reg
         v_rs1Reg := v_rs1Reg
         v_rs2Reg := v_rs2Reg
-        BP_taken_Reg := BP_taken_Reg
     }.elsewhen(io.Flush){
         immReg := 0.U(32.W)
         InstReg := 0.U(32.W)
@@ -59,7 +55,6 @@ class Reg_EXE(addrWidth:Int) extends Module {
         rs2Reg := 0.U(32.W)
         v_rs1Reg := 0.U(512.W)
         v_rs2Reg := 0.U(512.W)
-        BP_taken_Reg := false.B
     }.otherwise{
         InstReg := io.inst_in
         immReg := io.imm_in
@@ -68,7 +63,6 @@ class Reg_EXE(addrWidth:Int) extends Module {
         rs2Reg := io.rs2_rdata_in
         v_rs1Reg := io.v_rs1_rdata_in
         v_rs2Reg := io.v_rs2_rdata_in
-        BP_taken_Reg := io.BP_taken_in
     }
  
     io.inst := InstReg
@@ -78,5 +72,4 @@ class Reg_EXE(addrWidth:Int) extends Module {
     io.rs2_rdata := rs2Reg
     io.v_rs1_rdata := v_rs1Reg
     io.v_rs2_rdata := v_rs1Reg
-    io.BP_taken := BP_taken_Reg
 }
