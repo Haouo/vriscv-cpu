@@ -37,11 +37,12 @@ class Controller(memAddrWidth: Int) extends Module {
     val EXE_target_pc = Input(UInt(memAddrWidth.W))
 
     // Flush
-    val Flush = Output(Bool()) //TBD
+    val Flush_WB_ID_DH = Output(Bool()) //TBD
+    val Flush_BH = Output(Bool()) //TBD
 
     // Stall
     // To Be Modified
-    val Stall_DH = Output(Bool()) //TBD
+    val Stall_WB_ID_DH = Output(Bool()) //TBD
     val Stall_MA = Output(Bool()) //TBD
 
     // inst
@@ -194,10 +195,11 @@ class Controller(memAddrWidth: Int) extends Module {
  
   // Control signal - Stall
   // Stall for Data Hazard
-  io.Stall_DH := (is_D_rs1_W_rd_overlap || is_D_rs2_W_rd_overlap)
+  io.Stall_WB_ID_DH := (is_D_rs1_W_rd_overlap || is_D_rs2_W_rd_overlap)
   io.Stall_MA := false.B // Stall for Waiting Memory Access
   // Control signal - Flush
-  io.Flush := Predict_Miss
+  io.Flush_BH := Predict_Miss
+  io.Flush_WB_ID_DH := (is_D_rs1_W_rd_overlap || is_D_rs2_W_rd_overlap)
 
   // Control signal - Data Forwarding (Bonus)
 
