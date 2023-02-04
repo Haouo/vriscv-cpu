@@ -134,7 +134,7 @@ test10:
   lw t2, 0(t2)
   lb t2,0(t2)
   lb t1,0(t1)
-  beq  t3,x0, pass
+  beq  t1,t2, pass
   beq  x0,x0, fail
 pass:
   addi sp, x0, 0
