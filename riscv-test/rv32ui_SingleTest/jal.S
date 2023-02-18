@@ -17,6 +17,7 @@ RVTEST_RV32U
 addi x3, x0, 0x00000001
 TEST_INSERT_NOPS_5
 jal x1, jump_target
+TEST_INSERT_NOPS_5
 addi x3, x0, 0x00000000
 jump_target:
 

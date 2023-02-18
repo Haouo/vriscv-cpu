@@ -72,9 +72,9 @@ blt x1, x0, hello
 TEST_INSERT_NOPS_5
 bge x3, x0, hello
 TEST_INSERT_NOPS_5
-bltu x3, x11, hello
+bltu x11, x3, hello
 TEST_INSERT_NOPS_5
-bgeu x11, x3, hello
+bgeu x3, x11, hello
 TEST_INSERT_NOPS_5
 jalr x25, 752(x0)
 TEST_INSERT_NOPS_5

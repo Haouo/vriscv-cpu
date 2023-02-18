@@ -16,7 +16,8 @@ RVTEST_RV32U
 #-------------------------------------------------------------
 addi x3, x0, 0x00000001
 TEST_INSERT_NOPS_5
-jalr x1, 32(x0)
+jalr x1, 52(x0)
+TEST_INSERT_NOPS_5
 addi x3, x0, 0x00000000
 addi x4, x0, 0x00000001
 
