@@ -39,8 +39,8 @@ void print_regfile(uint32_t rf[32]) {
 void print_vector_regfile(vector_reg vrf[32]) {
 	for (int j= 0; j < 32; j++ ) {
 		printf( "\nVector register %2d : " , j);
-		printf( "0x%02" PRIx8 "" , vrf[j].bytes[0]);
-		for(int k=1; k < VLMAX; k++)
+		printf( "0x%02" PRIx8 "" , vrf[j].bytes[VLMAX-1]);
+		for(int k=VLMAX-2; k >= 0; k--)
 		{
 			printf( "%02" PRIx8 "" , vrf[j].bytes[k]);
 		}

@@ -76,8 +76,8 @@ class top_AXI extends Module {
     io.regs := cpu.io.regs
     io.Hcf := cpu.io.Hcf
     io.inst := im.io.inst
-    io.rdata := cpu.io.DataMem.rdata(data_width-1,0)
-    io.wdata := cpu.io.DataMem.wdata(data_width-1,0)
+    io.rdata := dm.io.rdata
+    io.wdata := dm.io.wdata
     /* lab 10-4 Modification of Vector Extension */
     io.vector_regs := cpu.io.vector_regs
 

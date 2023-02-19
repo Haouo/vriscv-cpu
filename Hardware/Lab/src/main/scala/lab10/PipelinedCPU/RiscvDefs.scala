@@ -55,6 +55,7 @@ object alu_op_map {
   val AND = "b0000000_11111_111".U
   val SUB = "b0100000_11111_000".U
   val SRA = "b0100000_11111_101".U
+  val MUL = "b0000001_11111_000".U
 }
 
 object pc_sel_map {

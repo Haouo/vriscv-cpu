@@ -78,7 +78,9 @@ class AXIReadBus(val mSlaves: Int, val addrWidth: Int, val dataWidth: Int, val a
     io.master.readData.bits.resp := io.slave(read_port_reg).readData.bits.resp
     io.master.readData.bits.last := io.slave(read_port_reg).readData.bits.last
     when(io.master.readData.ready) {
-      read_addr_reg_valid := false.B
+      when(io.slave(read_port_reg).readData.bits.last){
+        read_addr_reg_valid := false.B
+      }
       io.slave(read_port_reg).readData.ready := true.B
     }.otherwise {
       io.master.readData.valid := false.B

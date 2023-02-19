@@ -94,11 +94,15 @@ class AXIWriteBus(val mSlaves: Int, val addrWidth: Int, val dataWidth: Int, val 
 
   when(write_data_reg_valid) {
     io.master.writeData.ready := false.B
+    when(io.slave(write_port_reg).writeData.ready)
+    {
+      write_data_reg_valid := false.B
+    }
   }.otherwise {
     io.master.writeData.ready := true.B
   }
 
-  when(io.slave(write_port_reg).writeResp.valid && write_data_reg_valid === true.B) {
+  when(io.slave(write_port_reg).writeResp.valid) {
     io.master.writeResp.bits := io.slave(write_port_reg).writeResp.bits
     io.master.writeResp.valid := true.B
     when(io.master.writeResp.ready) {

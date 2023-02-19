@@ -44,7 +44,7 @@ main:
 ## Finish your homework here :))
 ## Make sure you use only scalar instruction
 ##
-    li      sp, 10000
+    li      sp, 0x10000
 
     addi	sp, sp, -4
     sw		ra, 0(sp)
@@ -70,17 +70,23 @@ main:
     # ---------------------------------
     la      a0,	output_data
     addi    a1, x0, 6
-    vle8_v  v1, 0(a0)
+    vle8_v  v11, 0(a0)
     add    a0, a0, a1
-    vle8_v  v2, 0(a0)
+    vle8_v  v12, 0(a0)
     add    a0, a0, a1
-    vle8_v  v3, 0(a0)
+    vle8_v  v13, 0(a0)
     add    a0, a0, a1
-    vle8_v  v4, 0(a0)
+    vle8_v  v14, 0(a0)
     add    a0, a0, a1
-    vle8_v  v5, 0(a0)
+    vle8_v  v15, 0(a0)
     add    a0, a0, a1
-    vle8_v  v6, 0(a0)
+    vle8_v  v16, 0(a0)
+
+    nop
+    nop
+    nop
+    nop
+    nop
 
     hcf
     
