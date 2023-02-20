@@ -1,4 +1,4 @@
-package myCPU.Controller
+package myImplement.PipelineCPU.Controller
 
 import chisel3._
 import chisel3.util._
