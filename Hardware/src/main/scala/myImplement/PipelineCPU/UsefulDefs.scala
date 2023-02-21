@@ -58,7 +58,7 @@ object Control {
 
   // IF Stage
   object PC_sel extends ChiselEnum {
-    val sel_IF_pc_plue_4, sel_EXE_pc_plus_4, sel_EXE_target_pc, sel_predict_target_pc = Value
+    val sel_IF_pc_plue_4, sel_EXE_target_pc = Value
   }
 
   // EXE Stage
@@ -67,10 +67,10 @@ object Control {
     // COPY_OP2 is for Lui
   }
   object ALU_op1_sel extends ChiselEnum {
-    val selPC, sel_rs1 = Value
+    val sel_PC, sel_rs1 = Value
   }
   object ALU_op2_sel extends ChiselEnum {
-    val selImme, sel_rs2 = Value
+    val sel_Imme, sel_rs2 = Value
   }
 
   // WB Stage

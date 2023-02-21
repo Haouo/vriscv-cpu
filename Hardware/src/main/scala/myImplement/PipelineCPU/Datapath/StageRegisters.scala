@@ -17,10 +17,14 @@ class IF_reg extends Nodule {
 
 class ID_reg extends Module {
   val io = IO(new Bundle {
-    val stall  = Input(Bool())
-    val flush  = Input(Bool())
-    val instIn = Input(UInt(32.W))
+    val stall   = Input(Bool())
+    val flush   = Input(Bool())
+    val instIn  = Input(UInt(32.W))
+    val instOut = Output(UInt(32.W))
   })
+
+  val inst = Reg(UInt(32.W))
+  // TODO
 }
 
 class EXE_reg extends Module {
