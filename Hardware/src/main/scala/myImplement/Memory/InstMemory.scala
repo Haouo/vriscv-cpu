@@ -1,23 +1,23 @@
-package muImplement.Memory
+package myImplement.Memory
 
 import chisel3._
 import chisel3.util._
 import chisel3.util.experimental.loadMemoryFromFileInline
 
-class InstMemIO(addrWidth: Int) extends Bundle {
-  val addr = Input(UInt(addrWidth.W))
+class InstMemoryIO(memAddrWidth: Int) extends Bundle {
+  val addr = Input(UInt(memAddrWidth.W))
   val inst = Output(UInt(32.W))
 }
 
-class InstMem(addrWidth: Int = 16) extends Module {
-  val io = IO(new InstMemIO)
+class InstMemory(memAddrWidth: Int) extends Module {
+  val io = IO(new InstMemoryIO(memAddrWidth))
 
   val byte = 8
-  val mem  = Mem(1 << addrWidth, UInt(byte.W))
+  val mem  = Mem(1 << memAddrWidth, UInt(byte.W))
+
+  // pre-load memory
   loadMemoryFromFileInline(mem, "./src/main/resource/inst.hex")
 
-  // address alignment
-  val addrAlign = WireDefault(io.addr & (~"b11".U))
   // read inst
-  io.inst := mem(addrAlign + 3.U) ## mem(addrAlign + 2.U) ## mem(addrAlign + 1.U) ## mem(addrAlign)
+  io.inst := mem(io.addr + 3.U) ## mem(io.addr + 2.U) ## mem(io.addr + 1.U) ## mem(io.addr)
 }

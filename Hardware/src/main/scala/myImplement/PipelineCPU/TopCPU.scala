@@ -3,12 +3,18 @@ package myImplement.PipelineCPU
 import chisel3._
 import chisel3.util._
 
+import myImplement.PipelineCPU.Datapath.Datapath
+import myImplement.PipelineCPU.Controller.Controller
+import myImplement.Memory.{DataMemoryIO, InstMemoryIO}
+
 class TopCPU_IO(memAddrWidth: Int) extends Bundle {
   // System
-  val regs = Output(Vec(32, UInt(32.W)))
-  val Hcf  = Output(Bool())
+  val InstMemIF = Flipped(new InstMemoryIO(memAddrWidth))
+  val DataMemIF = Flipped(new DataMemoryIO(memAddrWidth, 32))
 
   // Test
+  val regs           = Output(Vec(32, UInt(32.W)))
+  val Hcf            = Output(Bool())
   val E_Branch_taken = Output(Bool())
   val Flush          = Output(Bool())
   val Stall_MA       = Output(Bool())
@@ -29,15 +35,24 @@ class TopCPU_IO(memAddrWidth: Int) extends Bundle {
   val EXE_Branch     = Output(Bool())
 }
 
-class TopCPU(memAddrWidth: Int) extends Bundle {
+class TopCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
   val io = IO(new TopCPU_IO(memAddrWidth))
 
+  // * Modules * //
+  val datapath   = Module(new Datapath(memAddrWidth, memDataWidth))
+  val controller = Module(new Controller(memDataWidth))
+
+  // * Module Connection * //
+  // Datapath <-----> Controller
+  datapath.io.datapath_controller_io <> controller.io.controller_datapath_io
+
+  // test ports
   // TODO
 }
 
 object TopCPU extends App {
   emitVerilog(
-    new top,
+    new TopCPU(15, 32),
     Array("--target-dir", "./generated/top")
   )
 }

@@ -3,8 +3,8 @@ package myImplement.PipelineCPU.Datapath
 import chisel3._
 import chisel3.util._
 
-import myImplement.PipelineCPU.ALU_op
-import myImplement.PipelineCPU.ALU_op._
+import myImplement.PipelineCPU.Control.ALU_op
+import myImplement.PipelineCPU.Control.ALU_op._
 
 class ALU_IO extends Bundle {
   val op1    = Input(UInt(32.W))

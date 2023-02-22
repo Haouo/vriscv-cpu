@@ -3,6 +3,8 @@ package myImplement.PipelineCPU.Datapath
 import chisel3._
 import chisel3.util._
 
+import myImplement.PipelineCPU.opcode._
+
 class ImmeGenIO extends Bundle {
   val inst = Input(UInt(32.W))
   val imme = Output(UInt(32.W))

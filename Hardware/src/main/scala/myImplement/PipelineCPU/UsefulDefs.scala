@@ -2,7 +2,7 @@ package myImplement.PipelineCPU
 
 import chisel3._
 import chisel3.util._
-import chisel3.util.experimental.ChiselEnum
+import chisel3.experimental.ChiselEnum
 
 object opcode {
   val OP     = "b01100".U(5.W)
@@ -53,6 +53,15 @@ object func3_set {
   }
 }
 
+object utilFunctions {
+  def get_op(inst: UInt):        UInt = inst(6, 2)
+  def get_func3(inst: UInt):     UInt = inst(14, 12)
+  def get_func7(inst: UInt):     UInt = inst(30)
+  def get_rs1_index(inst: UInt): UInt = inst(19, 15)
+  def get_rs2_index(inst: UInt): UInt = inst(24, 20)
+  def get_rd_index(inst: UInt):  UInt = inst(11, 7)
+}
+
 object Control {
   val nop = "h00000013".U(32.W)
 
@@ -62,14 +71,14 @@ object Control {
   }
 
   // EXE Stage
-  object ALU_op      extends ChiselEnum {
+  object ALU_op       extends ChiselEnum {
     val ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND, COPY_OP2 = Value
     // COPY_OP2 is for Lui
   }
-  object ALU_op1_sel extends ChiselEnum {
+  object ALU_src1_sel extends ChiselEnum {
     val sel_PC, sel_rs1 = Value
   }
-  object ALU_op2_sel extends ChiselEnum {
+  object ALU_src2_sel extends ChiselEnum {
     val sel_Imme, sel_rs2 = Value
   }
 
