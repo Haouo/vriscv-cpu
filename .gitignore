@@ -1,4 +1,8 @@
 .bsp/
+.bloop/
+.metals/
+.vscode/
+.DS_Store
 generated/
 out/
 obj/
