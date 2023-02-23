@@ -9,7 +9,7 @@ then
 	set -x
         cp ../Emulator/inst.asm $src_dir/src/main/resource/inst.asm
         cp ../Emulator/inst.hex $src_dir/src/main/resource/inst.hex
-	    cp ../Emulator/data.hex $src_dir/src/main/resource/data.hex
+	cp ../Emulator/data.hex $src_dir/src/main/resource/data.hex
     elif [ "$1" = "-s" ]
     then
 	set -x

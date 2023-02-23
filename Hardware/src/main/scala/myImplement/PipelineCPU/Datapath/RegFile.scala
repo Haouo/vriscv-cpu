@@ -12,7 +12,7 @@ class RegFileIO extends Bundle {
   val rs1_data  = Output(UInt(32.W))
   val rs2_data  = Output(UInt(32.W))
   // for testing
-  val regs      = Output(Vec(32, UInt(32.W)))
+  val regs = Output(Vec(32, UInt(32.W)))
 }
 
 class RegFile extends Module {
@@ -20,10 +20,10 @@ class RegFile extends Module {
   val regFile = Mem(32, UInt(32.W))
 
   // $x0 is always zero
-  regFile(0)           := 0.U
+  regFile(0) := 0.U
   // output value
-  io.rs1_data          := regFile(io.rs1_index)
-  io.rs2_data          := regFile(io.rs2_index)
+  io.rs1_data := regFile(io.rs1_index)
+  io.rs2_data := regFile(io.rs2_index)
   // write (cannot write $x0)
   regFile(io.rd_index) := Mux(io.wEnable & (io.rd_index =/= 0.U), io.writeData, regFile(io.rd_index))
 

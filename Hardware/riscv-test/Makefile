@@ -86,8 +86,8 @@ endif
 
 endef
 
-$(eval $(call compile_template,rv32ui_FullTest,-march=rv32g -mabi=ilp32))
-$(eval $(call compile_template,rv32ui_SingleTest,-march=rv32g -mabi=ilp32))
+$(eval $(call compile_template,rv32ui_FullTest,-march=rv32i -mabi=ilp32))
+$(eval $(call compile_template,rv32ui_SingleTest,-march=rv32i -mabi=ilp32))
 #ifeq ($(XLEN),64)
 #$(eval $(call compile_template,rv64ui,-march=rv64g -mabi=lp64))
 #endif

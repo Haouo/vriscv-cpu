@@ -8,13 +8,14 @@ import myImplement.PipelineCPU.Control.nop
 class IF_PipeReg extends Module {
   val io = IO(new Bundle {
     // control
-    val stall     = Input(Bool())
+    val stall = Input(Bool())
     // data
-    val nextPC    = Output(UInt(32.W))
+    val nextPC    = Input(UInt(32.W))
     val currentPC = Output(UInt(32.W))
   })
 
-  val PC = RegInit(UInt(32.W))
+  val PC = RegInit(0.U(32.W))
+
   PC           := Mux(io.stall, PC, io.nextPC)
   io.currentPC := PC
 }
@@ -22,8 +23,8 @@ class IF_PipeReg extends Module {
 class ID_PipeReg extends Module {
   val io = IO(new Bundle {
     // control
-    val stall    = Input(Bool())
-    val flush    = Input(Bool())
+    val stall = Input(Bool())
+    val flush = Input(Bool())
     // data
     val pc_in    = Input(UInt(32.W))
     val pc_out   = Output(UInt(32.W))
@@ -47,8 +48,8 @@ class ID_PipeReg extends Module {
 class EXE_PipeReg extends Module {
   val io = IO(new Bundle {
     // control
-    val stall        = Input(Bool())
-    val flush        = Input(Bool())
+    val stall = Input(Bool())
+    val flush = Input(Bool())
     // data
     val pc_in        = Input(UInt(32.W))
     val pc_out       = Output(UInt(32.W))
@@ -56,7 +57,7 @@ class EXE_PipeReg extends Module {
     val inst_out     = Output(UInt(32.W))
     val rs1_data_in  = Input(UInt(32.W))
     val rs1_data_out = Output(UInt(32.W))
-    val rs2_data_in  = Output(UInt(32.W))
+    val rs2_data_in  = Input(UInt(32.W))
     val rs2_data_out = Output(UInt(32.W))
     val imme_in      = Input(UInt(32.W))
     val imme_out     = Output(UInt(32.W))
@@ -87,7 +88,7 @@ class EXE_PipeReg extends Module {
 class MEM_PipeReg extends Module {
   val io = IO(new Bundle {
     // control
-    val stall        = Input(Bool())
+    val stall = Input(Bool())
     // data
     val pc_in        = Input(UInt(32.W))
     val pc_out       = Output(UInt(32.W))
@@ -121,12 +122,14 @@ class MEM_PipeReg extends Module {
 class WB_PipeReg extends Module {
   val io = IO(new Bundle {
     // control
-    val stall       = Input(Bool())
+    val stall = Input(Bool())
     // data
     val pc_in       = Input(UInt(32.W))
     val pc_out      = Output(UInt(32.W))
     val inst_in     = Input(UInt(32.W))
     val inst_out    = Output(UInt(32.W))
+    val aluOut_in   = Input(UInt(32.W))
+    val aluOut_out  = Output(UInt(32.W))
     val ld_data_in  = Input(UInt(32.W))
     val ld_data_out = Output(UInt(32.W))
   })
@@ -134,15 +137,18 @@ class WB_PipeReg extends Module {
   // regs
   val pc      = Reg(UInt(32.W))
   val inst    = Reg(UInt(32.W))
+  val aluOut  = Reg(UInt(32.W))
   val ld_data = Reg(UInt(32.W))
 
   // stall control
   pc      := Mux(io.stall, pc, io.pc_in)
   inst    := Mux(io.stall, inst, io.inst_in)
+  aluOut  := Mux(io.stall, aluOut, io.aluOut_in)
   ld_data := Mux(io.stall, ld_data, io.ld_data_in)
 
   // output
   io.pc_out      := pc
   io.inst_out    := inst
+  io.aluOut_out  := aluOut
   io.ld_data_out := ld_data
 }

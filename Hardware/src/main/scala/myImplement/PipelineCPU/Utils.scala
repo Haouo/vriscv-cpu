@@ -39,17 +39,17 @@ object func3_set {
   }
 
   object LOAD_func3 {
-    val lb  = 0.U(3.W)
-    val lh  = 1.U(3.W)
-    val lw  = 2.U(3.W)
-    val lbu = 4.U(3.W)
-    val lhu = 5.U(3.W)
+    val lb  = "b000".U(3.W)
+    val lh  = "b001".U(3.W)
+    val lw  = "b010".U(3.W)
+    val lbu = "b100".U(3.W)
+    val lhu = "b101".U(3.W)
   }
 
   object STORE_func3 {
-    val sb = 0.U(3.W)
-    val sh = 1.U(3.W)
-    val sw = 2.U(3.W)
+    val sb = "b000".U(3.W)
+    val sh = "b001".U(3.W)
+    val sw = "b010".U(3.W)
   }
 }
 
@@ -63,7 +63,7 @@ object utilFunctions {
 }
 
 object Control {
-  val nop = "h00000013".U(32.W)
+  val nop = "h00000013".U(32.W) // addi $x0, $x0, 0
 
   // IF Stage
   object PC_sel extends ChiselEnum {
@@ -71,7 +71,7 @@ object Control {
   }
 
   // EXE Stage
-  object ALU_op       extends ChiselEnum {
+  object ALU_op extends ChiselEnum {
     val ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND, COPY_OP2 = Value
     // COPY_OP2 is for Lui
   }

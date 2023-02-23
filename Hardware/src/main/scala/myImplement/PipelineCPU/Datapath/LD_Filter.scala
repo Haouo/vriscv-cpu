@@ -16,7 +16,7 @@ class LD_Filter extends Module {
 
   val sextData = Wire(SInt(32.W))
   io.outData := sextData.asUInt
-  sextData   := MuxLookup(
+  sextData := MuxLookup(
     io.WB_func3,
     io.inData.asSInt,
     Seq(

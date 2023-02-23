@@ -1,208 +1,163 @@
-li ra,16
+li gp,1
+li t1,1
 nop 
 nop 
 nop 
 nop 
 nop 
-slli sp,ra,0x3
+li t2,1
 nop 
 nop 
+beq t2,t1,<test2>
 nop 
 nop 
 nop 
-xori gp,sp,-2048
 nop 
 nop 
+beqz zero,<fail>
+li gp,2
+li t1,2
 nop 
 nop 
 nop 
-slti tp,sp,-3
 nop 
 nop 
+li t2,2
 nop 
 nop 
+beq t1,t2,<test3>
 nop 
-sltiu t0,sp,-3
 nop 
 nop 
 nop 
 nop 
+beqz zero,<fail>
+li gp,3
+li t1,3
 nop 
-srli t1,gp,0x2
 nop 
 nop 
 nop 
 nop 
+li t2,3
 nop 
-srai t2,gp,0x2
+beq t2,t1,<test4>
 nop 
 nop 
 nop 
 nop 
 nop 
-ori s0,zero,123
+beqz zero,<fail>
+li gp,4
+li t1,4
 nop 
 nop 
 nop 
 nop 
 nop 
-andi s1,t0,-1
+li t2,4
 nop 
+beq t1,t2,<test5>
 nop 
 nop 
 nop 
 nop 
-add a0,t0,t1
 nop 
+beqz zero,<fail>
+li gp,5
+li t1,5
 nop 
 nop 
 nop 
 nop 
-sub a1,gp,t2
 nop 
+li t2,5
+beq t2,t1,<test6>
 nop 
 nop 
 nop 
 nop 
-sll a2,t0,s0
 nop 
+beqz zero,<fail>
+li gp,6
+li t1,6
 nop 
 nop 
 nop 
 nop 
-slt a3,t2,s1
 nop 
+li t2,6
+beq t1,t2,<test7>
 nop 
 nop 
 nop 
 nop 
-sltu a4,s1,sp
 nop 
+beqz zero,<fail>
+li gp,7
+auipc t1,0x8
+addi t1,t1,-388
+li t2,255
 nop 
 nop 
 nop 
 nop 
-xor a5,a1,gp
 nop 
+lbu t3,0(t1)
+beq t3,t2,<test8>
 nop 
 nop 
 nop 
 nop 
-srl a6,a3,tp
 nop 
+beqz zero,<fail>
+li gp,8
+auipc t1,0x8
+addi t1,t1,-454
+li t2,15
 nop 
 nop 
 nop 
 nop 
-sra a7,a5,t0
 nop 
+lbu t3,0(t1)
+beq t3,t2,<test9>
 nop 
 nop 
 nop 
 nop 
-or s2,a7,ra
 nop 
+beqz zero,<fail>
+li gp,9
+li t3,1
+auipc t1,0x8
+addi t1,t1,-528
+lb t2,0(t1)
+add t3,t2,t3
+add t3,t3,t2
+sub t3,t2,t3
+beqz t3,<test10>
+beqz zero,<fail>
+li gp,10
+auipc t3,0x8
+addi t3,t3,-560
+auipc t1,0x8
+addi t1,t1,-572
+sw t1,0(t3)
+add t2,zero,t3
+lw t2,0(t2)
+lb t2,0(t2)
+lb t1,0(t1)
+beq t1,t2,<pass>
+beqz zero,<fail>
+li sp,0
+beqz zero,<exit>
 nop 
 nop 
 nop 
 nop 
-and s3,a3,a0
 nop 
-nop 
-nop 
-nop 
-nop 
-sb gp,3(zero)
-nop 
-nop 
-nop 
-nop 
-nop 
-sw ra,4(zero)
-nop 
-nop 
-nop 
-nop 
-nop 
-lb s4,3(zero)
-nop 
-nop 
-nop 
-nop 
-nop 
-lw s5,4(zero)
-nop 
-nop 
-nop 
-nop 
-nop 
-lbu s6,3(zero)
-nop 
-nop 
-nop 
-nop 
-nop 
-lui s8,0x1238
-nop 
-nop 
-nop 
-nop 
-nop 
-beq ra,sp,<hello>
-nop 
-nop 
-nop 
-nop 
-nop 
-bne ra,ra,<hello>
-nop 
-nop 
-nop 
-nop 
-nop 
-bltz ra,<hello>
-nop 
-nop 
-nop 
-nop 
-nop 
-bgez gp,<hello>
-nop 
-nop 
-nop 
-nop 
-nop 
-bltu gp,a1,<hello>
-nop 
-nop 
-nop 
-nop 
-nop 
-bgeu a1,gp,<hello>
-nop 
-nop 
-nop 
-nop 
-nop 
-jalr s9,752(zero)
-nop 
-nop 
-nop 
-nop 
-nop 
-add a0,t0,t1
-nop 
-nop 
-nop 
-nop 
-nop 
-j <exit>
-nop 
-nop 
-nop 
-nop 
-nop 
-sll a2,t0,s0
+mv sp,gp
 nop 
 nop 
 nop 
