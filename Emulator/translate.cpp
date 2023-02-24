@@ -491,12 +491,7 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 		inst_cnt++;
 	}
     
-    //write "hcf" in the inst_file
-	fprintf(inst_file, "hcf\n");
-	fprintf(mch_file, "%02x\n", 0x00);
-	fprintf(mch_file, "%02x\n", 0x00);
-	fprintf(mch_file, "%02x\n", 0x00);
-	fprintf(mch_file, "%02x\n", 0x0B);
+    
 	//write five "nop" instructions at the end of the inst_file
 	for(int t=0; t<5;t++)
 	{
@@ -506,6 +501,12 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 		fprintf(mch_file, "%02x\n", 0x00);
 		fprintf(mch_file, "%02x\n", 0x00);
 	}
+	//write "hcf" in the inst_file
+	fprintf(inst_file, "hcf\n");
+	fprintf(mch_file, "%02x\n", 0x00);
+	fprintf(mch_file, "%02x\n", 0x00);
+	fprintf(mch_file, "%02x\n", 0x00);
+	fprintf(mch_file, "%02x\n", 0x0B);
 
 	//write data to data.hex
 	write_data_hex(mem,data_file);
