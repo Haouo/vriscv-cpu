@@ -14,6 +14,7 @@ class TopTest extends AnyFlatSpec with ChiselScalatestTester {
   val file_name       = "./src/main/resource/inst.asm"
   val lines           = Source.fromFile(file_name).getLines().toList
 
+  // * Implicit Conversion * //
   implicit def Boolean2Int(a: Boolean): Int = if (a) 1 else 0
 
   // * testing body * //
@@ -132,6 +133,7 @@ class TopTest extends AnyFlatSpec with ChiselScalatestTester {
       }
 
       // * print performance counters * //
+      println(s"cycle count: $cycle_count")
       // TODO
     }
   }

@@ -1,166 +1,175 @@
-li gp,1
-li t1,1
-nop 
-nop 
-nop 
-nop 
-nop 
-li t2,1
-nop 
-nop 
-beq t2,t1,<test2>
-nop 
-nop 
-nop 
-nop 
-nop 
-beqz zero,<fail>
-li gp,2
-li t1,2
-nop 
-nop 
-nop 
-nop 
-nop 
-li t2,2
-nop 
-nop 
-beq t1,t2,<test3>
-nop 
-nop 
-nop 
-nop 
-nop 
-beqz zero,<fail>
-li gp,3
-li t1,3
-nop 
-nop 
-nop 
-nop 
-nop 
-li t2,3
-nop 
-beq t2,t1,<test4>
-nop 
-nop 
-nop 
-nop 
-nop 
-beqz zero,<fail>
-li gp,4
-li t1,4
-nop 
-nop 
-nop 
-nop 
-nop 
-li t2,4
-nop 
-beq t1,t2,<test5>
-nop 
-nop 
-nop 
-nop 
-nop 
-beqz zero,<fail>
-li gp,5
-li t1,5
-nop 
-nop 
-nop 
-nop 
-nop 
-li t2,5
-beq t2,t1,<test6>
-nop 
-nop 
-nop 
-nop 
-nop 
-beqz zero,<fail>
-li gp,6
-li t1,6
-nop 
-nop 
-nop 
-nop 
-nop 
-li t2,6
-beq t1,t2,<test7>
-nop 
-nop 
-nop 
-nop 
-nop 
-beqz zero,<fail>
-li gp,7
-auipc t1,0x8
-addi t1,t1,-388
-li t2,255
-nop 
-nop 
-nop 
-nop 
-nop 
-lbu t3,0(t1)
-beq t3,t2,<test8>
-nop 
-nop 
-nop 
-nop 
-nop 
-beqz zero,<fail>
-li gp,8
-auipc t1,0x8
-addi t1,t1,-454
-li t2,15
-nop 
-nop 
-nop 
-nop 
-nop 
-lbu t3,0(t1)
-beq t3,t2,<test9>
-nop 
-nop 
-nop 
-nop 
-nop 
-beqz zero,<fail>
-li gp,9
-li t3,1
-auipc t1,0x8
-addi t1,t1,-528
-lb t2,0(t1)
-add t3,t2,t3
-add t3,t3,t2
-sub t3,t2,t3
-beqz t3,<test10>
-beqz zero,<fail>
-li gp,10
-auipc t3,0x8
-addi t3,t3,-560
-auipc t1,0x8
-addi t1,t1,-572
-sw t1,0(t3)
-add t2,zero,t3
-lw t2,0(t2)
-lb t2,0(t2)
-lb t1,0(t1)
-beq t1,t2,<pass>
-beqz zero,<fail>
+j <reset_vector>
+li ra,0
 li sp,0
-beqz zero,<exit>
+li gp,0
+li tp,0
+li t0,0
+li t1,0
+li t2,0
+li s0,0
+li s1,0
+li a0,0
+li a1,0
+li a2,0
+li a3,0
+li a4,0
+li a5,0
+li a6,0
+li a7,0
+li s2,0
+li s3,0
+li s4,0
+li s5,0
+li s6,0
+li s7,0
+li s8,0
+li s9,0
+li s10,0
+li s11,0
+li t3,0
+li t4,0
+li t5,0
+li t6,0
+li gp,0
+li a0,1
+slli a0,a0,0x1f
+bltz a0,<main>
 nop 
-nop 
-nop 
-nop 
-nop 
-mv sp,gp
+li gp,1
+li a7,93
+li a0,0
+addi sp,sp,-8
+sw s0,4(sp)
+sw s1,0(sp)
+auipc s0,0x8
+addi s0,s0,-172
+auipc s1,0x8
+addi s1,s1,-72
+mv a0,s0
+li a1,0
+lw a2,0(s1)
+addi a2,a2,-1
+addi sp,sp,-4
+sw ra,0(sp)
+jal ra,<mergesort>
+lw ra,0(sp)
+addi sp,sp,4
+lw s0,4(sp)
+lw s1,0(sp)
+addi sp,sp,8
+li a7,93
+li a0,0
 nop 
 nop 
 nop 
 nop 
 nop 
 hcf
+bge a1,a2,<mergesort_ret>
+addi sp,sp,-12
+sw s0,8(sp)
+sw s1,4(sp)
+sw s2,0(sp)
+mv s1,a1
+mv s2,a2
+add s0,a1,a2
+srai s0,s0,0x1
+addi sp,sp,-4
+sw ra,0(sp)
+mv a1,s1
+mv a2,s0
+jal ra,<mergesort>
+addi a1,s0,1
+mv a2,s2
+jal ra,<mergesort>
+mv a1,s1
+mv a2,s0
+mv a3,s2
+jal ra,<merge>
+lw ra,0(sp)
+addi sp,sp,4
+lw s0,8(sp)
+lw s1,4(sp)
+lw s2,0(sp)
+addi sp,sp,12
+ret 
+sub t0,a3,a1
+addi t0,t0,1
+slli t1,t0,0x2
+sub sp,sp,t1
+mv t1,sp
+li t2,0
+bge t2,t0,<for_loop_1_end>
+add t3,t2,a1
+slli t3,t3,0x2
+add t3,t3,a0
+lw t4,0(t3)
+slli t3,t2,0x2
+add t3,t3,t1
+sw t4,0(t3)
+addi t2,t2,1
+blt t2,t0,<for_loop_1>
+addi sp,sp,-20
+sw s0,0(sp)
+sw s1,4(sp)
+sw s2,8(sp)
+sw s3,12(sp)
+sw s4,16(sp)
+li s0,0
+sub s1,a2,a1
+addi s2,s1,1
+sub s3,a3,a1
+mv s4,a1
+blt s1,s0,<while_loop_1_end>
+blt s3,s2,<while_loop_1_end>
+slli t2,s0,0x2
+add t2,t2,t1
+lw t3,0(t2)
+slli t2,s2,0x2
+add t2,t2,t1
+lw t4,0(t2)
+slli t2,s4,0x2
+add t2,t2,a0
+blt t4,t3,<else_1>
+sw t3,0(t2)
+addi s4,s4,1
+addi s0,s0,1
+j <if_1_end>
+sw t4,0(t2)
+addi s4,s4,1
+addi s2,s2,1
+j <while_loop_1>
+blt s1,s0,<while_loop_2_end>
+slli t2,s0,0x2
+add t2,t2,t1
+lw t3,0(t2)
+slli t2,s4,0x2
+add t2,t2,a0
+sw t3,0(t2)
+addi s4,s4,1
+addi s0,s0,1
+bge s1,s0,<while_loop_2>
+blt s3,s2,<while_loop_3_end>
+slli t2,s2,0x2
+add t2,t2,t1
+lw t3,0(t2)
+slli t2,s4,0x2
+add t2,t2,a0
+sw t3,0(t2)
+addi s4,s4,1
+addi s2,s2,1
+bge s3,s2,<while_loop_3>
+lw s0,0(sp)
+lw s1,4(sp)
+lw s2,8(sp)
+lw s3,12(sp)
+lw s4,16(sp)
+addi sp,sp,20
+slli t1,t0,0x2
+add sp,sp,t1
+ret 
+nop 
+nop 
+nop 
+nop 
+nop 
