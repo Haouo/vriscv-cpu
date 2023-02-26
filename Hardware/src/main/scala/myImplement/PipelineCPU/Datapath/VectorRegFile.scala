@@ -21,6 +21,13 @@ class VectorRegFile extends Module {
   // $v0 is always 0
   v_reg(0) := 0.U
 
+  // for test
+  // val init_value = Seq(0.U(512.W)) ++
+  // Seq("h000102030405060708090a0b0c0d0e0f101112131415161718191a1b1f1d1e1f".U(512.W)) ++
+  // Seq("h000102030405060708090a0b0c0d0e0f101112131415161718191a1b1f1d1e1f".U(512.W)) ++
+  // Seq.fill(29)(0.U(512.W))
+  // val v_reg = RegInit(VecInit(init_value))
+
   // read reg
   io.vs1_data := v_reg(io.vs1_index)
   io.vs2_data := v_reg(io.vs2_index)

@@ -48,7 +48,6 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
   // * registers * //
   val state         = RegInit(sIdle) // state register
   val length        = RegInit(0.U(8.W))
-  val currentAddr   = RegInit(0.U(memAddrWidth.W))
   val burst_counter = RegInit(0.U(4.W))
   // * wires * //
   val writeLast = WireDefault(burst_counter === length)
@@ -83,7 +82,7 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
       state := Mux(io.to_AXI_bus.readData.bits.last & io.to_AXI_bus.readData.valid, sIdle, sReadDataWait)
     }
     is(sWriteAddrSend) {
-      state := Mux(io.to_AXI_bus.writeAddr.ready, sWriteRespWait, sWriteAddrSend)
+      state := Mux(io.to_AXI_bus.writeAddr.ready, sWriteSendData, sWriteAddrSend)
     }
     is(sWriteSendData) {
       state := Mux(
@@ -100,16 +99,11 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
   // * internal register update logic * //
   switch(state) {
     is(sIdle) {
-      // initialize length, currentAddr and burst_counter
+      // initialize length and burst_counter
       length := Mux(
         io.to_cpu.from_controller.toRead | io.to_cpu.from_controller.toWrite,
         io.to_cpu.from_controller.length,
         length
-      )
-      currentAddr := Mux(
-        io.to_cpu.from_controller.toRead | io.to_cpu.from_controller.toWrite,
-        io.to_cpu.from_datapath.baseAddr,
-        currentAddr
       )
     }
     is(sReadAddrSend) {
@@ -125,11 +119,6 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
           burst_counter
         )
       )
-      currentAddr := Mux(
-        io.to_AXI_bus.readData.valid,
-        currentAddr + 4.U,
-        currentAddr
-      )
     }
     is(sWriteAddrSend) {
       // blank
@@ -139,11 +128,6 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
         io.to_AXI_bus.writeData.ready & io.to_cpu.from_datapath.writeData.valid,
         burst_counter + 1.U,
         burst_counter
-      )
-      currentAddr := Mux(
-        io.to_AXI_bus.writeData.ready & io.to_cpu.from_datapath.writeData.valid,
-        currentAddr + 4.U,
-        currentAddr
       )
     }
     is(sWriteRespWait) {
@@ -181,6 +165,8 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
       io.to_AXI_bus.readData.ready := true.B
     }
     is(sWriteAddrSend) {
+      // to cpu
+      io.to_cpu.from_controller.start := io.to_AXI_bus.writeAddr.ready
       // to AXI
       io.to_AXI_bus.writeAddr.valid := true.B
     }
@@ -204,8 +190,8 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
   // to AXI
   io.to_AXI_bus.readAddr.bits.len   := length
   io.to_AXI_bus.writeAddr.bits.len  := length
-  io.to_AXI_bus.readAddr.bits.addr  := currentAddr
-  io.to_AXI_bus.writeAddr.bits.addr := currentAddr
+  io.to_AXI_bus.readAddr.bits.addr  := io.to_cpu.from_datapath.baseAddr
+  io.to_AXI_bus.writeAddr.bits.addr := io.to_cpu.from_datapath.baseAddr
   io.to_AXI_bus.writeData.bits.data := io.to_cpu.from_datapath.writeData.bits
   io.to_AXI_bus.writeData.bits.last := writeLast
 }

@@ -157,7 +157,7 @@ class Datapath(memAddrWidth: Int, memDataWidth: Int) extends Module {
   )
   // about write data
   io.datapath_to_wrapper.writeData.valid := Mux(
-    io.datapath_controller_io.controller_state === sWriteSend,
+    io.datapath_controller_io.controller_state === sWriteWait,
     true.B,
     false.B
   )
@@ -190,8 +190,8 @@ class Datapath(memAddrWidth: Int, memDataWidth: Int) extends Module {
   )
   v_writeVackData := Mux(
     io.datapath_controller_io.WB_v_wb_sel === WB_v_sel_control.sel_v_ld_data,
-    WB_reg.io.ld_data_out, // for vector load
-    WB_reg.io.v_aluOut_out // for vadd.vv or vmul.vx
+    WB_reg.io.v_ld_data_out, // for vector load
+    WB_reg.io.v_aluOut_out   // for vadd.vv or vmul.vx
   )
 
   // * test ports * //

@@ -31,8 +31,7 @@ class DataMemory(memAddrWidth: Int, memDataWidth: Int) extends Module {
   val state         = RegInit(sIdle)
   val length        = RegInit(0.U(4.W))
   val burst_counter = RegInit(0.U(4.W))
-  val readAddr      = io.to_bus.readAddr.bits.addr
-  val writeAddr     = io.to_bus.writeAddr.bits.addr
+  val currentAddr   = RegInit(0.U(memAddrWidth.W))
   val readLast      = WireDefault(burst_counter === length)
 
   // pre-load memory
@@ -55,7 +54,7 @@ class DataMemory(memAddrWidth: Int, memDataWidth: Int) extends Module {
       state := Mux(readLast & io.to_bus.readData.ready, sIdle, sReadData)
     }
     is(sWriteData) {
-      state := Mux(io.to_bus.writeData.bits.last & io.to_bus.writeData.valid, sIdle, sWriteData)
+      state := Mux(io.to_bus.writeData.bits.last & io.to_bus.writeData.valid, sWriteResp, sWriteData)
     }
     is(sWriteResp) {
       state := Mux(io.to_bus.writeResp.ready, sIdle, sWriteResp)
@@ -74,6 +73,15 @@ class DataMemory(memAddrWidth: Int, memDataWidth: Int) extends Module {
           length
         )
       )
+      currentAddr := Mux(
+        io.to_bus.readAddr.valid,
+        io.to_bus.readAddr.bits.addr,
+        Mux(
+          io.to_bus.writeAddr.valid,
+          io.to_bus.writeAddr.bits.addr,
+          currentAddr
+        )
+      )
     }
     is(sReadData) {
       burst_counter := Mux(
@@ -85,19 +93,29 @@ class DataMemory(memAddrWidth: Int, memDataWidth: Int) extends Module {
           burst_counter
         )
       )
+      currentAddr := Mux(
+        io.to_bus.readData.ready,
+        currentAddr + 4.U,
+        currentAddr
+      )
     }
     is(sWriteData) {
       burst_counter := Mux(
-        io.to_bus.writeData.ready,
+        io.to_bus.writeData.valid,
         burst_counter + 1.U,
         burst_counter
       )
+      currentAddr := Mux(
+        io.to_bus.writeData.valid,
+        currentAddr + 4.U,
+        currentAddr
+      )
       // ! write memory only when state is sWriteData
       for (i <- 0 until 4) {
-        mem(writeAddr + i.U) := Mux(
+        mem(currentAddr + i.U) := Mux(
           io.to_bus.writeData.bits.strb(i).asBool,
           io.to_bus.writeData.bits.data(8 * i + 7, 8 * i),
-          mem(writeAddr + i.U)
+          mem(currentAddr + i.U)
         )
       }
     }
@@ -116,7 +134,9 @@ class DataMemory(memAddrWidth: Int, memDataWidth: Int) extends Module {
   io.to_bus.writeData.ready    := false.B
   io.to_bus.writeResp.valid    := false.B
   io.to_bus.writeResp.bits     := 0.U
-  io.to_bus.readData.bits.data := mem(readAddr + 3.U) ## mem(readAddr + 2.U) ## mem(readAddr + 1.U) ## mem(readAddr)
+  io.to_bus.readData.bits.data := mem(currentAddr + 3.U) ## mem(currentAddr + 2.U) ## mem(currentAddr + 1.U) ## mem(
+    currentAddr
+  )
 
   switch(state) {
     is(sIdle) {
