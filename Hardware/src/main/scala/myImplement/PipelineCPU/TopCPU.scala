@@ -3,18 +3,22 @@ package myImplement.PipelineCPU
 import chisel3._
 import chisel3.util._
 
+import myImplement.ModuleIF.CPU_AXI_WrapperIO
 import myImplement.PipelineCPU.Datapath.Datapath
 import myImplement.PipelineCPU.Controller.Controller
 import myImplement.Memory.{DataMemoryIO, InstMemoryIO}
+import myImplement.ModuleIF.Wrapper_to_CPU_IO
+import dataclass.data
 
 class TopCPU_IO(memAddrWidth: Int, memDataWidth: Int) extends Bundle {
   // System
-  val InstMemIF = Flipped(new InstMemoryIO(memAddrWidth))
-  val DataMemIF = Flipped(new DataMemoryIO(memAddrWidth, memDataWidth))
+  val InstMemIF  = Flipped(new InstMemoryIO(memAddrWidth))
+  val to_wrapper = Flipped(new Wrapper_to_CPU_IO(memAddrWidth, memDataWidth))
 
   // Test
-  val regs  = Output(Vec(32, UInt(32.W)))
-  val isHcf = Output(Bool())
+  val regs        = Output(Vec(32, UInt(32.W)))
+  val vector_regs = Output(Vec(32, UInt(512.W)))
+  val isHcf       = Output(Bool())
   // flush & stall
   val flush    = Output(Bool())
   val stall_MA = Output(Bool())
@@ -50,12 +54,17 @@ class TopCPU(memAddrWidth: Int, memDataWidth: Int) extends Module {
   // * Module Connection * //
   // Datapath <-----> Controller
   datapath.io.datapath_controller_io <> controller.io.controller_datapath_io
+  // Datapath <-----> InstMem (connect directly)
   datapath.io.datapath_instMem_io <> io.InstMemIF
-  datapath.io.datapath_dataMem_io <> io.DataMemIF
+  // Controller <-----> Wrapper IO
+  controller.io.controller_to_wrapper <> io.to_wrapper.from_controller
+  // Datapath <-----> Wrapper IO
+  datapath.io.datapath_to_wrapper <> io.to_wrapper.from_datapath
 
   // * test ports * //
   // from datapath
   io.regs        := datapath.io.regs
+  io.vector_regs := datapath.io.vector_regs
   io.IF_pc       := datapath.io.IF_pc
   io.ID_pc       := datapath.io.ID_pc
   io.EXE_pc      := datapath.io.EXE_pc

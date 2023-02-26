@@ -4,17 +4,18 @@ import chisel3._
 import chisel3.util._
 import chisel3.experimental.ChiselEnum
 
+// * RV32I * //
 object opcode {
-  val OP     = "b01100".U(5.W)
-  val OP_IMM = "b00100".U(5.W)
-  val LOAD   = "b00000".U(5.W)
-  val STORE  = "b01000".U(5.W)
-  val BRANCH = "b11000".U(5.W)
-  val JAL    = "b11011".U(5.W)
-  val JALR   = "b11001".U(5.W)
-  val LUI    = "b01101".U(5.W)
-  val AUIPC  = "b00101".U(5.W)
-  val HCF    = "b00010".U(5.W)
+  val OP     = "b0110011".U(7.W)
+  val OP_IMM = "b0010011".U(7.W)
+  val LOAD   = "b0000011".U(7.W)
+  val STORE  = "b0100011".U(7.W)
+  val BRANCH = "b1100011".U(7.W)
+  val JAL    = "b1101111".U(7.W)
+  val JALR   = "b1100111".U(7.W)
+  val LUI    = "b0110111".U(7.W)
+  val AUIPC  = "b0010111".U(7.W)
+  val HCF    = "b0001011".U(7.W)
 }
 
 object func3_set {
@@ -53,13 +54,41 @@ object func3_set {
   }
 }
 
+// * V-Extension
+object vector_op {
+  val OPV    = "b1010111".U(7.W)
+  val VLOAD  = "b0000111".U(7.W)
+  val VSTORE = "b0100111".U(7.W)
+}
+
+object vector_func3 {
+  object arithmetic {
+    val OPIVV = "b000".U
+    val OPIVX = "b100".U
+  }
+}
+
+object vector_func6 {
+  object arithmetic {
+    val vadd = "b000000".U(6.W)
+    val vmul = "b100101".U(6.W)
+  }
+}
+
 object utilFunctions {
-  def get_op(inst: UInt):        UInt = inst(6, 2)
+  // for both RN32I and V-Extension
+  def get_op(inst: UInt):        UInt = inst(6, 0)
+  def get_rs1_index(inst: UInt): UInt = inst(19, 15)
+  // for RV32I
   def get_func3(inst: UInt):     UInt = inst(14, 12)
   def get_func7(inst: UInt):     UInt = inst(30)
-  def get_rs1_index(inst: UInt): UInt = inst(19, 15)
   def get_rs2_index(inst: UInt): UInt = inst(24, 20)
   def get_rd_index(inst: UInt):  UInt = inst(11, 7)
+  // for V-Extension
+  def get_func6(inst: UInt):     UInt = inst(31, 26)
+  def get_vs1_index(inst: UInt): UInt = inst(19, 15)
+  def get_vs2_index(inst: UInt): UInt = inst(24, 20)
+  def get_vd_index(inst: UInt):  UInt = inst(11, 7)
 }
 
 object Control {
@@ -81,9 +110,20 @@ object Control {
   object ALU_src2_sel extends ChiselEnum {
     val sel_Imme, sel_rs2 = Value
   }
+  // for V-Extension
+  object VALU_op extends ChiselEnum {
+    val ADD_VV, MUL_VX = Value
+  }
+  object VALU_src1_sel extends ChiselEnum {
+    val sel_vs1, sel_rs1 = Value
+  }
 
   // WB Stage
   object WB_sel_control extends ChiselEnum {
     val sel_pc_plue_4, sel_alu_out, sel_ld_filter_data = Value
+  }
+  // for V-Extension
+  object WB_v_sel_control extends ChiselEnum {
+    val sel_valu_out, sel_v_ld_data = Value
   }
 }

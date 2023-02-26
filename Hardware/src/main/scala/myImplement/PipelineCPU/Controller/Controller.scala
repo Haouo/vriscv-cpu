@@ -2,16 +2,34 @@ package myImplement.PipelineCPU.Controller
 
 import chisel3._
 import chisel3.util._
+import chisel3.experimental.ChiselEnum
 
 import myImplement.PipelineCPU.opcode._
+import myImplement.PipelineCPU.vector_op._
+import myImplement.PipelineCPU.vector_func6
+import myImplement.PipelineCPU.vector_func3
+import myImplement.PipelineCPU.Control.VALU_op._
+import myImplement.PipelineCPU.Control.VALU_src1_sel
 import myImplement.PipelineCPU.func3_set._
 import myImplement.PipelineCPU.func3_set.Arithmetic_func3._
 import myImplement.PipelineCPU.utilFunctions._
 import myImplement.PipelineCPU.Control._
 import myImplement.PipelineCPU.Controller_DatapathIO
+import myImplement.ModuleIF.Wrapper_to_CPU_IO_from_Controller
+import myImplement.PipelineCPU.func3_set
+
+object ControllerState extends ChiselEnum {
+  // sNormal -> CPU operate as usual
+  // sReadWait -> send read request and wait for data from bus
+  // sWriteWait -> send write request and wait for write resp
+  // in both sReadWait and sWriteWait -> whole CPU have to stall to wait until memory operation is finished
+  val sNormal, sReadSend, sReadWait, sWriteSend, sWriteWait, sDone = Value
+}
 
 class ControllerIO(memDataWidth: Int) extends Bundle {
   val controller_datapath_io = new Controller_DatapathIO(memDataWidth)
+  // for wrapper support
+  val controller_to_wrapper = Flipped(new Wrapper_to_CPU_IO_from_Controller)
 
   // test ports
   val isHcf          = Output(Bool())
@@ -24,6 +42,8 @@ class ControllerIO(memDataWidth: Int) extends Bundle {
 }
 
 class Controller(memDataWidth: Int) extends Module {
+  import ControllerState._
+
   val io = IO(new ControllerIO(memDataWidth))
 
   // for reducing the code
@@ -32,6 +52,8 @@ class Controller(memDataWidth: Int) extends Module {
   val MEM_inst = io.controller_datapath_io.MEM_inst
   val WB_inst  = io.controller_datapath_io.WB_inst
 
+  // * stage register * //
+  val state = RegInit(sNormal)
   // * Wires * //
   val actual_branch_result = Wire(Bool())
 
@@ -94,21 +116,100 @@ class Controller(memDataWidth: Int) extends Module {
       LUI -> ALU_op.COPY_OP2
     )
   )
+  // for vector
+  io.controller_datapath_io.EXE_VALU_op := Mux(
+    get_op(io.controller_datapath_io.EXE_inst) =/= OPV,
+    DontCare,
+    MuxLookup(
+      get_func3(io.controller_datapath_io.EXE_inst),
+      DontCare,
+      Seq(
+        vector_func3.arithmetic.OPIVV -> VALU_op.ADD_VV,
+        vector_func3.arithmetic.OPIVX -> VALU_op.MUL_VX
+      )
+    )
+  )
+  io.controller_datapath_io.EXE_VALU_src1_sel := Mux(
+    get_func3(io.controller_datapath_io.EXE_inst) === vector_func3.arithmetic.OPIVX,
+    VALU_src1_sel.sel_rs1,
+    VALU_src1_sel.sel_vs1
+  )
 
   // * MEM Stage * //
-  io.controller_datapath_io.MEM_dataMem_wEnable := Mux(
-    get_op(MEM_inst) === STORE,
-    MuxLookup(
-      get_func3(MEM_inst),
-      0.U,
-      Seq(
-        STORE_func3.sb -> "b0001".U,
-        STORE_func3.sh -> "b0011".U,
-        STORE_func3.sw -> "b1111".U
-      )
-    ),
-    0.U
+  val MEM_op = get_op(io.controller_datapath_io.MEM_inst)
+
+  // stall signal due to memory access
+  io.controller_datapath_io.stall_memory_access := Mux(
+    state === sDone,
+    false.B,
+    Mux(
+      MEM_op === LOAD || MEM_op === STORE || MEM_op === VLOAD || MEM_op === VSTORE,
+      true.B,
+      false.B
+    )
   )
+  io.controller_datapath_io.controller_state := state
+
+  // next state logic
+  switch(state) {
+    is(sNormal) {
+      state := Mux(
+        MEM_op === LOAD || MEM_op === VLOAD,
+        sReadSend,
+        Mux(
+          MEM_op === STORE || MEM_op === VSTORE,
+          sWriteSend,
+          sNormal
+        )
+      )
+    }
+    is(sReadSend) {
+      state := Mux(io.controller_to_wrapper.start, sReadWait, sReadSend)
+    }
+    is(sReadWait) {
+      state := Mux(io.controller_to_wrapper.done, sDone, sReadWait)
+    }
+    is(sWriteSend) {
+      state := Mux(io.controller_to_wrapper.start, sWriteWait, sWriteSend)
+    }
+    is(sWriteWait) {
+      state := Mux(io.controller_to_wrapper.done, sDone, sWriteWait)
+    }
+    is(sDone) {
+      state := sNormal
+    }
+  }
+
+  // output decoder
+  io.controller_to_wrapper.toRead  := false.B
+  io.controller_to_wrapper.toWrite := false.B
+  io.controller_to_wrapper.length  := 0.U
+  switch(state) {
+    is(sNormal) {
+      io.controller_to_wrapper.toRead  := (MEM_op === LOAD) | (MEM_op === VLOAD)
+      io.controller_to_wrapper.toWrite := (MEM_op === STORE) | (MEM_op === VSTORE)
+      io.controller_to_wrapper.length := Mux(
+        MEM_op === VLOAD || MEM_op === VSTORE,
+        15.U,
+        0.U
+      )
+    }
+    is(sReadSend) {
+      // blank
+    }
+    is(sReadWait) {
+      // blank
+    }
+    is(sWriteSend) {
+      // blank
+    }
+    is(sWriteWait) {
+      // blank
+    }
+    is(sDone) {
+      // blank
+    }
+  }
 
   // * WB Stage * //
   io.controller_datapath_io.WB_wEnable := Mux(
@@ -120,6 +221,17 @@ class Controller(memDataWidth: Int) extends Module {
     get_op(WB_inst) === JAL || get_op(WB_inst) === JALR,
     WB_sel_control.sel_pc_plue_4,
     Mux(get_op(WB_inst) === LOAD, WB_sel_control.sel_ld_filter_data, WB_sel_control.sel_alu_out)
+  )
+  // for vector
+  io.controller_datapath_io.WB_v_wb_sel := Mux(
+    get_op(io.controller_datapath_io.WB_inst) === VLOAD,
+    WB_v_sel_control.sel_v_ld_data,
+    WB_v_sel_control.sel_valu_out
+  )
+  io.controller_datapath_io.WB_vreg_wEnable := Mux(
+    get_op(io.controller_datapath_io.WB_inst) === VLOAD || get_op(io.controller_datapath_io.WB_inst) === OPV,
+    true.B,
+    false.B
   )
 
   // * Control Hazard Detection * //
@@ -144,7 +256,7 @@ class Controller(memDataWidth: Int) extends Module {
     )
   )
 
-  // * Data Hazard Detection * //
+  // * Data Hazard Detection, add vector support * //
   // wires
   val is_ID_use_rs1, is_ID_use_rs2, is_EXE_use_rd, is_MEM_use_rd, is_WB_use_rd = Wire(Bool())
   val is_ID_rs1_EXE_rd_overlap, is_ID_rs2_EXE_rd_overlap                       = Wire(Bool())
@@ -217,7 +329,7 @@ class Controller(memDataWidth: Int) extends Module {
   io.isHcf      := get_op(io.controller_datapath_io.ID_inst) === HCF
   io.flush      := actual_branch_result
   io.stall_DH   := io.controller_datapath_io.IF_stall
-  io.stall_MA   := false.B
+  io.stall_MA   := io.controller_datapath_io.stall_memory_access
   io.EXE_branch := get_op(io.controller_datapath_io.EXE_inst) === BRANCH
   io.EXE_jump := get_op(io.controller_datapath_io.EXE_inst) === JAL || get_op(
     io.controller_datapath_io.EXE_inst

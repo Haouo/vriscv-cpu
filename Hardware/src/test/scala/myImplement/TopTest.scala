@@ -10,7 +10,7 @@ import scala.language.implicitConversions
 class TopTest extends AnyFlatSpec with ChiselScalatestTester {
   // * testing config * //
   val opts            = Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)
-  val max_clock_limit = 100_0000
+  val max_clock_limit = 500
   val file_name       = "./src/main/resource/inst.asm"
   val lines           = Source.fromFile(file_name).getLines().toList
 
@@ -61,8 +61,8 @@ class TopTest extends AnyFlatSpec with ChiselScalatestTester {
         val ALU_src2    = dut.io.ALU_src2.peekInt().toInt.toHexString.replace(' ', '0')
         val EXE_alu_out = dut.io.EXE_alu_out.peekInt().toInt.toHexString.replace(' ', '0')
         // MEM Stage
-        val MEM_raddr = dut.io.MEM_raddr.peekInt().toInt.toHexString.replace(' ', '0')
-        val MEM_rdata = dut.io.MEM_rdata.peekInt().toInt.toHexString.replace(' ', '0')
+        // val MEM_raddr = dut.io.MEM_raddr.peekInt().toInt.toHexString.replace(' ', '0')
+        // val MEM_rdata = dut.io.MEM_rdata.peekInt().toInt.toHexString.replace(' ', '0')
         // WB Stage
         val WB_rd    = dut.io.WB_rd.peekInt().toInt.toHexString.replace(' ', '0')
         val WB_wdata = dut.io.WB_wdata.peekInt().toInt.toHexString.replace(' ', '0')
@@ -85,8 +85,8 @@ class TopTest extends AnyFlatSpec with ChiselScalatestTester {
             s"[ALU Out]${"%8s".format(EXE_alu_out)}"
         )
         println(
-          s"[MEM_pc]${"%8s".format(MEM_pc.toHexString.replace(' ', '0'))} [Inst] ${"%-25s".format(lines(MEM_pc >> 2))} " +
-            s"[DM Raddr]${"%8s".format(MEM_raddr)} [DM Rdata]${"%8s".format(MEM_rdata)}"
+          s"[MEM_pc]${"%8s".format(MEM_pc.toHexString.replace(' ', '0'))} [Inst] ${"%-25s".format(lines(MEM_pc >> 2))} " // +
+          // s"[DM Raddr]${"%8s".format(MEM_raddr)} [DM Rdata]${"%8s".format(MEM_rdata)}"
         )
         println(
           s"[WB_pc ]${"%8s".format(WB_pc.toHexString.replace(' ', '0'))} [Inst] ${"%-25s".format(lines(WB_pc >> 2))} " +
@@ -130,6 +130,14 @@ class TopTest extends AnyFlatSpec with ChiselScalatestTester {
             s"reg[${"%02d".format(8 * i + 6)}]：${value_6} " +
             s"reg[${"%02d".format(8 * i + 7)}]：${value_7} "
         )
+      }
+
+      /* Lab 10_4 Modification of Vector Extension */
+      println("")
+      println("Value in the Vector RegFile")
+      for (i <- 0 until 32) {
+        val value_0 = dut.io.vector_regs(i).peekInt()
+        println(s"vector_reg[${"%02d".format(i)}]s:" + f"$value_0%0128X")
       }
 
       // * print performance counters * //

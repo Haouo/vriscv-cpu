@@ -7,9 +7,9 @@ then
     if [ "$1" = "Emulator" ]
     then
 	set -x
-        cp ../Emulator/inst.asm $src_dir/src/main/resource/inst.asm
-        cp ../Emulator/inst.hex $src_dir/src/main/resource/inst.hex
-	cp ../Emulator/data.hex $src_dir/src/main/resource/data.hex
+        cp ../Emulator/test_code/inst.asm $src_dir/src/main/resource/inst.asm
+        cp ../Emulator/test_code/inst.hex $src_dir/src/main/resource/inst.hex
+	cp ../Emulator/test_code/data.hex $src_dir/src/main/resource/data.hex
     elif [ "$1" = "-s" ]
     then
 	set -x
