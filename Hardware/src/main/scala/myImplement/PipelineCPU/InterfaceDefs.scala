@@ -23,7 +23,8 @@ class Controller_DatapathIO(memDataWidth: Int) extends Bundle {
   val EXE_VALU_op       = Output(VALU_op())       // for vector
   val EXE_VALU_src1_sel = Output(VALU_src1_sel()) // for vector
   // MEM Stage
-  val MEM_inst = Input(UInt(32.W))
+  val MEM_inst           = Input(UInt(32.W))
+  val MEM_write_data_sel = Output(MEM_write_data_sel_control())
   // WB Stage
   val WB_inst         = Input(UInt(32.W))
   val WB_wEnable      = Output(Bool())

@@ -14,6 +14,8 @@ RVTEST_RV32U
 RVTEST_CODE_BEGIN
 
 main:
+    # set $sp
+    li sp, 0x10000
 
     # Collee save
     addi  sp, sp, -8

@@ -65,6 +65,7 @@ class Controller(memDataWidth: Int) extends Module {
   )
 
   // * ID Stage * //
+  // select vs2 for OPV, select vs3 for VSTORE
   io.controller_datapath_io.ID_vs2_index_sel := Mux(
     get_op(io.controller_datapath_io.ID_inst) === VSTORE,
     vs2_index_sel_control.sel_vs3,
@@ -93,12 +94,20 @@ class Controller(memDataWidth: Int) extends Module {
         get_func3(EXE_inst),
         ALU_op.ADD,
         Seq(
-          add_sub -> Mux(get_func7(EXE_inst).asBool, ALU_op.SUB, ALU_op.ADD),
+          add_sub_mul -> MuxLookup(
+            get_func7(EXE_inst),
+            ALU_op.ADD,
+            Seq(
+              "b0000000".U -> ALU_op.ADD,
+              "b0100000".U -> ALU_op.SUB,
+              "b0000001".U -> ALU_op.MUL
+            )
+          ),
           sll     -> ALU_op.SLL,
           slt     -> ALU_op.SLT,
           sltu    -> ALU_op.SLTU,
           xor     -> ALU_op.XOR,
-          srl_sra -> Mux(get_func7(EXE_inst).asBool, ALU_op.SRA, ALU_op.SRL),
+          srl_sra -> Mux(get_func7(EXE_inst) === "b0100000".U, ALU_op.SRA, ALU_op.SRL),
           or      -> ALU_op.OR,
           and     -> ALU_op.AND
         )
@@ -107,14 +116,14 @@ class Controller(memDataWidth: Int) extends Module {
         get_func3(EXE_inst),
         ALU_op.ADD,
         Seq(
-          add_sub -> ALU_op.ADD,
-          sll     -> ALU_op.SLL,
-          slt     -> ALU_op.SLT,
-          sltu    -> ALU_op.SLTU,
-          xor     -> ALU_op.XOR,
-          srl_sra -> Mux(get_func7(EXE_inst).asBool, ALU_op.SRA, ALU_op.SRL),
-          or      -> ALU_op.OR,
-          and     -> ALU_op.AND
+          add_sub_mul -> ALU_op.ADD,
+          sll         -> ALU_op.SLL,
+          slt         -> ALU_op.SLT,
+          sltu        -> ALU_op.SLTU,
+          xor         -> ALU_op.XOR,
+          srl_sra     -> Mux(get_func7(EXE_inst) === "b0100000".U, ALU_op.SRA, ALU_op.SRL),
+          or          -> ALU_op.OR,
+          and         -> ALU_op.AND
         )
       ),
       LUI -> ALU_op.COPY_OP2
@@ -140,7 +149,7 @@ class Controller(memDataWidth: Int) extends Module {
   )
 
   // * MEM Stage * //
-  val MEM_op = get_op(io.controller_datapath_io.MEM_inst)
+  val MEM_op = get_op(MEM_inst) // for code reducing
 
   // stall signal due to memory access
   io.controller_datapath_io.stall_memory_access := Mux(
@@ -152,7 +161,7 @@ class Controller(memDataWidth: Int) extends Module {
       false.B
     )
   )
-  io.controller_datapath_io.controller_state := state
+  io.controller_datapath_io.controller_state := state // send current state to datapath
 
   // next state logic
   switch(state) {
@@ -216,25 +225,32 @@ class Controller(memDataWidth: Int) extends Module {
   }
 
   io.controller_to_wrapper.write_strb := MuxLookup(
-    get_op(io.controller_datapath_io.MEM_inst),
+    get_op(MEM_inst),
     0.U,
     Seq(
       STORE -> MuxLookup(
         get_func3(io.controller_datapath_io.MEM_inst),
         0.U,
         Seq(
-          func3_set.STORE_func3.sb -> "b0001".U,
-          func3_set.STORE_func3.sh -> "b0011".U,
-          func3_set.STORE_func3.sw -> "b1111".U
+          func3_set.STORE_func3.sb -> "b0001".U, // store byte
+          func3_set.STORE_func3.sh -> "b0011".U, // store half word
+          func3_set.STORE_func3.sw -> "b1111".U  // store word
         )
       ),
       VSTORE -> "b1111".U
     )
   )
+  io.controller_datapath_io.MEM_write_data_sel := Mux(
+    get_op(io.controller_datapath_io.MEM_inst) === STORE,
+    MEM_write_data_sel_control.sel_rs2, // for STORE
+    MEM_write_data_sel_control.sel_vs2  // for VSTORE
+  )
 
   // * WB Stage * //
   io.controller_datapath_io.WB_wEnable := Mux(
-    get_op(WB_inst) === STORE || get_op(WB_inst) === BRANCH,
+    get_op(WB_inst) === STORE || get_op(WB_inst) === BRANCH || get_op(WB_inst) === OPV || get_op(
+      WB_inst
+    ) === VLOAD || get_op(WB_inst) === VSTORE,
     false.B,
     true.B
   )
@@ -245,12 +261,12 @@ class Controller(memDataWidth: Int) extends Module {
   )
   // for vector
   io.controller_datapath_io.WB_v_wb_sel := Mux(
-    get_op(io.controller_datapath_io.WB_inst) === VLOAD,
+    get_op(WB_inst) === VLOAD,
     WB_v_sel_control.sel_v_ld_data,
     WB_v_sel_control.sel_valu_out
   )
   io.controller_datapath_io.WB_vreg_wEnable := Mux(
-    get_op(io.controller_datapath_io.WB_inst) === VLOAD || get_op(io.controller_datapath_io.WB_inst) === OPV,
+    get_op(WB_inst) === OPV || get_op(WB_inst) === VLOAD,
     true.B,
     false.B
   )
@@ -381,7 +397,7 @@ class Controller(memDataWidth: Int) extends Module {
   is_ID_WB_overlap := is_ID_rs1_WB_rd_overlap | is_ID_rs2_WB_rd_overlap | is_ID_vs1_WB_vd_overlap | is_ID_vs2_WB_vd_overlap | is_ID_vs3_WB_vd_overlap
 
   // * Pipeline Regs Stall & Flush Control * //
-  io.controller_datapath_io.IF_stall  := is_ID_EXE_overlap | is_ID_MEM_overlap | is_ID_WB_overlap
+  io.controller_datapath_io.IF_stall := (is_ID_EXE_overlap | is_ID_MEM_overlap | is_ID_WB_overlap) & (~actual_branch_result)
   io.controller_datapath_io.ID_stall  := is_ID_EXE_overlap | is_ID_MEM_overlap | is_ID_WB_overlap
   io.controller_datapath_io.ID_flush  := actual_branch_result
   io.controller_datapath_io.EXE_stall := false.B

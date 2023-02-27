@@ -30,7 +30,8 @@ class ALU extends Module {
       SRA.asUInt      -> (io.op1.asSInt >> io.op2(4, 0)).asUInt,
       OR.asUInt       -> (io.op1 | io.op2),
       AND.asUInt      -> (io.op1 & io.op2),
-      COPY_OP2.asUInt -> (io.op2)
+      COPY_OP2.asUInt -> (io.op2),
+      MUL.asUInt      -> (io.op1 * io.op2)
     )
   )
 }

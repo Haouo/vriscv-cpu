@@ -165,7 +165,11 @@ class Datapath(memAddrWidth: Int, memDataWidth: Int) extends Module {
     true.B,
     false.B
   )
-  io.datapath_to_wrapper.writeData.bits := MEM_vs2_data_vector_type(io.datapath_to_wrapper.countValue)
+  io.datapath_to_wrapper.writeData.bits := Mux(
+    io.datapath_controller_io.MEM_write_data_sel === MEM_write_data_sel_control.sel_rs2,
+    MEM_reg.io.rs2_data_out,
+    MEM_vs2_data_vector_type(io.datapath_to_wrapper.countValue)
+  )
 
   // * WB Stage * //
   WB_reg.io.stall      := io.datapath_controller_io.WB_stall
