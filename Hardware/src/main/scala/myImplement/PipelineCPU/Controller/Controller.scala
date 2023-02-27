@@ -215,6 +215,23 @@ class Controller(memDataWidth: Int) extends Module {
     }
   }
 
+  io.controller_to_wrapper.write_strb := MuxLookup(
+    get_op(io.controller_datapath_io.MEM_inst),
+    0.U,
+    Seq(
+      STORE -> MuxLookup(
+        get_func3(io.controller_datapath_io.MEM_inst),
+        0.U,
+        Seq(
+          func3_set.STORE_func3.sb -> "b0001".U,
+          func3_set.STORE_func3.sh -> "b0011".U,
+          func3_set.STORE_func3.sw -> "b1111".U
+        )
+      ),
+      VSTORE -> "b1111".U
+    )
+  )
+
   // * WB Stage * //
   io.controller_datapath_io.WB_wEnable := Mux(
     get_op(WB_inst) === STORE || get_op(WB_inst) === BRANCH,

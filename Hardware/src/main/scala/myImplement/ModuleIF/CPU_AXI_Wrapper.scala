@@ -8,11 +8,12 @@ import myImplement.AXI.AXIMasterIF
 import myImplement.Memory.DataMemoryIO
 
 class Wrapper_to_CPU_IO_from_Controller extends Bundle {
-  val toRead  = Input(Bool())
-  val toWrite = Input(Bool())
-  val length  = Input(UInt(8.W))
-  val start   = Output(Bool()) // indicate CPU that it can start to send or receive data
-  val done    = Output(Bool()) // indicate CPU that transaction is done
+  val toRead     = Input(Bool())
+  val toWrite    = Input(Bool())
+  val write_strb = Input(UInt(4.W))
+  val length     = Input(UInt(8.W))
+  val start      = Output(Bool()) // indicate CPU that it can start to send or receive data
+  val done       = Output(Bool()) // indicate CPU that transaction is done
 }
 
 class Wrapper_to_CPU_IO_from_Datapath(memAddrWidth: Int, memDataWidth: Int) extends Bundle {
@@ -59,8 +60,6 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
   // burst size -> 4 bytes (0b010)
   io.to_AXI_bus.readAddr.bits.size  := "b010".U
   io.to_AXI_bus.writeAddr.bits.size := "b010".U
-  // write strb -> 0b1111
-  io.to_AXI_bus.writeData.bits.strb := "b1111".U
 
   // * next state logic * //
   switch(state) {
@@ -192,6 +191,7 @@ class CPU_AXI_Wrapper(memAddrWidth: Int, memDataWidth: Int) extends Module {
   io.to_AXI_bus.writeAddr.bits.len  := length
   io.to_AXI_bus.readAddr.bits.addr  := io.to_cpu.from_datapath.baseAddr
   io.to_AXI_bus.writeAddr.bits.addr := io.to_cpu.from_datapath.baseAddr
+  io.to_AXI_bus.writeData.bits.strb := io.to_cpu.from_controller.write_strb
   io.to_AXI_bus.writeData.bits.data := io.to_cpu.from_datapath.writeData.bits
   io.to_AXI_bus.writeData.bits.last := writeLast
 }
