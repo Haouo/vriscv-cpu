@@ -13,7 +13,7 @@ class ImmeGenIO extends Bundle {
 class ImmeGen extends Module {
   val io = IO(new ImmeGenIO)
   // main part
-  val opcode = WireDefault(io.inst(6, 2))
+  val opcode = WireDefault(io.inst(6, 0))
   io.imme := MuxLookup(
     opcode,
     0.U,

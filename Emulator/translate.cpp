@@ -441,34 +441,43 @@ void translate_to_machine_code(uint8_t* mem,instr* imem, char* argv1){
 				binary += 0b000 << 12;       //funct3
 				binary += i.a2.reg << 15;    //vs1
 				binary += i.a3.reg << 20;    //vs2
-				binary += 0b0000000 << 25;   //funct7
+				binary += 0b1 << 25;         //vm
+				binary += 0b0000000 << 25;   //funct6
 			break;
 
 			case VMUL_VX:
 			    binary = 0x57; //opcode
 				binary += i.a1.reg << 7;     //vd
 				binary += 0b100 << 12;       //funct3
-				binary += i.a2.reg << 15;    //vs1
-				binary += i.a3.reg << 20;    //rs2
-				binary += 0b0000000 << 25;   //funct7
+				binary += i.a3.reg << 15;    //vs1
+				binary += i.a2.reg << 20;    //rs2
+				binary += 0b1 << 25; 	     //vm
+				binary += 0b100101 << 25;    //funct6
 			break;
 
 			case VLE8_V:
 			    binary = 0x07; //opcode
 				binary += i.a1.reg << 7;     //vd
-				binary += 0b000 << 12;       //funct3
+				binary += 0b000 << 12;	     //width
 				binary += i.a2.reg << 15;    //rs1
 				binary += 0b00000 << 20;     //lumop
-				binary += 0b0000000 << 25;   //funct7
+				binary += 0b1 << 25;	     //vm
+				binary += 0b00 << 26;	     //mop
+				binary += 0b0 << 28;	     //mew
+				binary += 0b000 << 29;	     //nf
 			break;
 
 			case VSE8_V:
 			    binary = 0x27; //opcode
-				binary += i.a1.reg << 7;     //vd
-				binary += 0b000 << 12;       //funct3
+			    binary += i.a1.reg << 7;     //vs3
+				binary += 0b000 << 12;	     //width
 				binary += i.a2.reg << 15;    //rs1
-				binary += 0b00000 << 20;     //lumop
-				binary += 0b0000000 << 25;   //funct7
+				binary += 0b00000 << 20;     //sumop
+				binary += 0b1 << 25;	     //vm
+				binary += 0b00 << 26;	     //mop
+				binary += 0b0 << 28;	     //mew
+				binary += 0b000 << 29;	     //nf
+
 			break;
 
 			case UNIMPL:

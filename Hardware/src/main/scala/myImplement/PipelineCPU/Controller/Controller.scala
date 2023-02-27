@@ -65,7 +65,11 @@ class Controller(memDataWidth: Int) extends Module {
   )
 
   // * ID Stage * //
-  // blank
+  io.controller_datapath_io.ID_vs2_index_sel := Mux(
+    get_op(io.controller_datapath_io.ID_inst) === VSTORE,
+    vs2_index_sel_control.sel_vs3,
+    vs2_index_sel_control.sel_vs2
+  )
 
   // * EXE Stage * //
   io.controller_datapath_io.EXE_BrUn := get_func3(EXE_inst) === BRANCH_func3.bltu || get_func3(
@@ -257,6 +261,7 @@ class Controller(memDataWidth: Int) extends Module {
   )
 
   // * Data Hazard Detection, add vector support * //
+  // TODO: add data hazard detection for vector inst
   // wires
   val is_ID_use_rs1, is_ID_use_rs2, is_EXE_use_rd, is_MEM_use_rd, is_WB_use_rd = Wire(Bool())
   val is_ID_rs1_EXE_rd_overlap, is_ID_rs2_EXE_rd_overlap                       = Wire(Bool())
@@ -264,9 +269,16 @@ class Controller(memDataWidth: Int) extends Module {
   val is_ID_rs1_WB_rd_overlap, is_ID_rs2_WB_rd_overlap                         = Wire(Bool())
   val is_ID_EXE_overlap, is_ID_MEM_overlap, is_ID_WB_overlap                   = Wire(Bool())
 
+  val ID_is_OPIVV = WireDefault((get_op(ID_inst) === OPV) && (get_func3(ID_inst) === vector_func3.arithmetic.OPIVV))
+
+  val is_ID_use_vs1, is_ID_use_vs2, is_ID_use_vs3, is_EXE_use_vd, is_MEM_use_vd, is_WB_use_vd = Wire(Bool())
+  val is_ID_vs1_EXE_vd_overlap, is_ID_vs2_EXE_vd_overlap, is_ID_vs3_EXE_vd_overlap            = Wire(Bool())
+  val is_ID_vs1_MEM_vd_overlap, is_ID_vs2_MEM_vd_overlap, is_ID_vs3_MEM_vd_overlap            = Wire(Bool())
+  val is_ID_vs1_WB_vd_overlap, is_ID_vs2_WB_vd_overlap, is_ID_vs3_WB_vd_overlap               = Wire(Bool())
+
   // use_rs1 & use_rs2 & use_rd
   is_ID_use_rs1 := Mux(
-    get_op(ID_inst) === JAL || get_op(ID_inst) === LUI || get_op(ID_inst) === AUIPC,
+    get_op(ID_inst) === JAL || get_op(ID_inst) === LUI || get_op(ID_inst) === AUIPC || ID_is_OPIVV,
     false.B,
     Mux(get_rs1_index(ID_inst) === 0.U, false.B, true.B)
   )
@@ -291,6 +303,13 @@ class Controller(memDataWidth: Int) extends Module {
     Mux(get_rd_index(WB_inst) === 0.U, false.B, true.B)
   )
 
+  is_ID_use_vs1 := Mux(ID_is_OPIVV, true.B, false.B)
+  is_ID_use_vs2 := Mux(get_op(ID_inst) === OPV, true.B, false.B)
+  is_ID_use_vs3 := Mux(get_op(ID_inst) === VSTORE, true.B, false.B)
+  is_EXE_use_vd := Mux(get_op(EXE_inst) === VSTORE, false.B, true.B)
+  is_MEM_use_vd := Mux(get_op(MEM_inst) === VSTORE, false.B, true.B)
+  is_WB_use_vd  := Mux(get_op(WB_inst) === VSTORE, false.B, true.B)
+
   // overlap
   is_ID_rs1_EXE_rd_overlap := is_ID_use_rs1 & is_EXE_use_rd & (get_rs1_index(ID_inst) === get_rd_index(
     (EXE_inst)
@@ -311,10 +330,38 @@ class Controller(memDataWidth: Int) extends Module {
     WB_inst
   )) & (get_rd_index(WB_inst) =/= 0.U)
 
+  is_ID_vs1_EXE_vd_overlap := is_ID_use_vs1 & is_EXE_use_vd & (get_vs1_index(ID_inst) === get_vd_index(
+    EXE_inst
+  )) & (get_vd_index(EXE_inst) =/= 0.U)
+  is_ID_vs2_EXE_vd_overlap := is_ID_use_vs2 & is_EXE_use_vd & (get_vs2_index(ID_inst) === get_vd_index(
+    EXE_inst
+  )) & (get_vd_index(EXE_inst) =/= 0.U)
+  is_ID_vs3_EXE_vd_overlap := is_ID_use_vs3 & is_EXE_use_vd & (get_vs3_index(ID_inst) === get_vd_index(
+    EXE_inst
+  )) & (get_vd_index(EXE_inst) =/= 0.U)
+  is_ID_vs1_MEM_vd_overlap := is_ID_use_vs1 & is_MEM_use_vd & (get_vs1_index(ID_inst) === get_vd_index(
+    MEM_inst
+  )) & (get_vd_index(MEM_inst) =/= 0.U)
+  is_ID_vs2_MEM_vd_overlap := is_ID_use_vs2 & is_MEM_use_vd & (get_vs2_index(ID_inst) === get_vd_index(
+    MEM_inst
+  )) & (get_vd_index(MEM_inst) =/= 0.U)
+  is_ID_vs3_MEM_vd_overlap := is_ID_use_vs3 & is_MEM_use_vd & (get_vs3_index(ID_inst) === get_vd_index(
+    MEM_inst
+  )) & (get_vd_index(MEM_inst) =/= 0.U)
+  is_ID_vs1_WB_vd_overlap := is_ID_use_vs1 & is_WB_use_vd & (get_vs1_index(ID_inst) === get_vd_index(
+    WB_inst
+  )) & (get_vd_index(WB_inst) =/= 0.U)
+  is_ID_vs2_WB_vd_overlap := is_ID_use_vs2 & is_WB_use_vd & (get_vs2_index(ID_inst) === get_vd_index(
+    WB_inst
+  )) & (get_vd_index(WB_inst) =/= 0.U)
+  is_ID_vs3_WB_vd_overlap := is_ID_use_vs3 & is_WB_use_vd & (get_vs3_index(ID_inst) === get_vd_index(
+    WB_inst
+  )) & (get_vd_index(WB_inst) =/= 0.U)
+
   // total overlap
-  is_ID_EXE_overlap := is_ID_rs1_EXE_rd_overlap | is_ID_rs2_EXE_rd_overlap
-  is_ID_MEM_overlap := is_ID_rs1_MEM_rd_overlap | is_ID_rs2_MEM_rd_overlap
-  is_ID_WB_overlap  := is_ID_rs1_WB_rd_overlap | is_ID_rs2_WB_rd_overlap
+  is_ID_EXE_overlap := is_ID_rs1_EXE_rd_overlap | is_ID_rs2_EXE_rd_overlap | is_ID_vs1_EXE_vd_overlap | is_ID_vs2_EXE_vd_overlap | is_ID_vs3_EXE_vd_overlap
+  is_ID_MEM_overlap := is_ID_rs1_MEM_rd_overlap | is_ID_rs2_MEM_rd_overlap | is_ID_vs1_MEM_vd_overlap | is_ID_vs2_MEM_vd_overlap | is_ID_vs3_MEM_vd_overlap
+  is_ID_WB_overlap := is_ID_rs1_WB_rd_overlap | is_ID_rs2_WB_rd_overlap | is_ID_vs1_WB_vd_overlap | is_ID_vs2_WB_vd_overlap | is_ID_vs3_WB_vd_overlap
 
   // * Pipeline Regs Stall & Flush Control * //
   io.controller_datapath_io.IF_stall  := is_ID_EXE_overlap | is_ID_MEM_overlap | is_ID_WB_overlap

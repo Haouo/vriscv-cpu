@@ -87,8 +87,9 @@ object utilFunctions {
   // for V-Extension
   def get_func6(inst: UInt):     UInt = inst(31, 26)
   def get_vs1_index(inst: UInt): UInt = inst(19, 15)
-  def get_vs2_index(inst: UInt): UInt = inst(24, 20)
-  def get_vd_index(inst: UInt):  UInt = inst(11, 7)
+  def get_vs2_index(inst: UInt): UInt = inst(24, 20) // for OPV
+  def get_vs3_index(inst: UInt): UInt = inst(11, 7)  // for VSE
+  def get_vd_index(inst: UInt):  UInt = inst(11, 7)  // for OPV or VLE
 }
 
 object Control {
@@ -97,6 +98,12 @@ object Control {
   // IF Stage
   object PC_sel extends ChiselEnum {
     val sel_IF_pc_plue_4, sel_EXE_target_pc = Value
+  }
+
+  // ID Stage
+  // for vector
+  object vs2_index_sel_control extends ChiselEnum {
+    val sel_vs2, sel_vs3 = Value
   }
 
   // EXE Stage

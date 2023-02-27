@@ -83,8 +83,12 @@ class Datapath(memAddrWidth: Int, memDataWidth: Int) extends Module {
   vrf.io.wEnable   := io.datapath_controller_io.WB_vreg_wEnable
   vrf.io.writeData := v_writeVackData
   vrf.io.vs1_index := get_vs1_index(ID_reg.io.inst_out)
-  vrf.io.vs2_index := get_vs2_index(ID_reg.io.inst_out)
-  vrf.io.vd_index  := get_vd_index(WB_reg.io.inst_out)
+  vrf.io.vs2_index := Mux(
+    io.datapath_controller_io.ID_vs2_index_sel === vs2_index_sel_control.sel_vs2,
+    get_vs2_index(ID_reg.io.inst_out), // for OPV & VLE
+    get_vs3_index(ID_reg.io.inst_out)  // for VSE
+  )
+  vrf.io.vd_index := get_vd_index(WB_reg.io.inst_out)
 
   io.datapath_controller_io.ID_inst := ID_reg.io.inst_out
 

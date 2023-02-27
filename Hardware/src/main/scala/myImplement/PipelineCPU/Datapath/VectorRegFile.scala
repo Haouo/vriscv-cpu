@@ -15,18 +15,18 @@ class VectorRegFileIO extends Bundle {
 }
 
 class VectorRegFile extends Module {
-  val io    = IO(new VectorRegFileIO)
-  val v_reg = Mem(32, UInt(512.W))
+  val io = IO(new VectorRegFileIO)
+  // val v_reg = Mem(32, UInt(512.W))
 
   // $v0 is always 0
-  v_reg(0) := 0.U
+  // v_reg(0) := 0.U
 
   // for test
-  // val init_value = Seq(0.U(512.W)) ++
-  // Seq("h000102030405060708090a0b0c0d0e0f101112131415161718191a1b1f1d1e1f".U(512.W)) ++
-  // Seq("h000102030405060708090a0b0c0d0e0f101112131415161718191a1b1f1d1e1f".U(512.W)) ++
-  // Seq.fill(29)(0.U(512.W))
-  // val v_reg = RegInit(VecInit(init_value))
+  val init_value = Seq(0.U(512.W)) ++
+    Seq("h000102030405060708090a0b0c0d0e0f101112131415161718191a1b1f1d1e1f".U(512.W)) ++
+    Seq("h000102030405060708090a0b0c0d0e0f101112131415161718191a1b1f1d1e1f".U(512.W)) ++
+    Seq.fill(29)(0.U(512.W))
+  val v_reg = RegInit(VecInit(init_value))
 
   // read reg
   io.vs1_data := v_reg(io.vs1_index)

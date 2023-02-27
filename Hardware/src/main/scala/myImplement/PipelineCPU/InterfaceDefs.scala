@@ -10,7 +10,8 @@ class Controller_DatapathIO(memDataWidth: Int) extends Bundle {
   // IF Stage
   val IF_next_pc_sel = Output(PC_sel())
   // ID Stage
-  val ID_inst = Input(UInt(32.W))
+  val ID_inst          = Input(UInt(32.W))
+  val ID_vs2_index_sel = Output(vs2_index_sel_control())
   // EXE Stage
   val EXE_inst          = Input(UInt(32.W))
   val EXE_alu_op        = Output(ALU_op())
