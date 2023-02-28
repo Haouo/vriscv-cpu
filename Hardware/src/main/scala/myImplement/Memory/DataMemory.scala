@@ -10,10 +10,18 @@ import os.read
 
 class DataMemoryIO(memAddrWidth: Int, memDataWidth: Int) extends Bundle {
   val to_bus = new AXISlaveIF(memAddrWidth, memDataWidth)
-  // val addr      = Input(UInt(memAddrWidth.W))
-  // val writeData = Input(UInt(memDataWidth.W))
-  // val wEnable   = Input(UInt((memDataWidth / 8).W))
-  // val readData  = Output(UInt(memDataWidth.W))
+  // for test
+  val isIdle         = Output(Bool())
+  val isRead         = Output(Bool())
+  val isWrite        = Output(Bool())
+  val rAddr          = Output(UInt(memAddrWidth.W))
+  val wAddr          = Output(UInt(memAddrWidth.W))
+  val rData          = Output(UInt(memDataWidth.W))
+  val wData          = Output(UInt(memDataWidth.W))
+  val readAddrValid  = Output(Bool())
+  val readLength     = Output(UInt(8.W))
+  val writeAddrValid = Output(Bool())
+  val writeLength    = Output(UInt(8.W))
 }
 
 class DataMemory(memAddrWidth: Int, memDataWidth: Int) extends Module {
@@ -153,4 +161,17 @@ class DataMemory(memAddrWidth: Int, memDataWidth: Int) extends Module {
       io.to_bus.writeResp.valid := true.B
     }
   }
+
+  // for test
+  io.isIdle         := state === sIdle
+  io.isRead         := state === sReadData
+  io.isWrite        := (state === sWriteData) || (state === sWriteResp)
+  io.rAddr          := io.to_bus.readAddr.bits.addr
+  io.wAddr          := io.to_bus.writeAddr.bits.addr
+  io.rData          := io.to_bus.readData.bits.data
+  io.wData          := io.to_bus.writeData.bits.data
+  io.readAddrValid  := io.to_bus.readAddr.valid
+  io.readLength     := io.to_bus.readAddr.bits.len
+  io.writeAddrValid := io.to_bus.writeAddr.valid
+  io.writeLength    := io.to_bus.writeAddr.bits.len
 }

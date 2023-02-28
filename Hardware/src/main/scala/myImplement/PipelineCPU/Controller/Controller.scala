@@ -294,7 +294,6 @@ class Controller(memDataWidth: Int) extends Module {
   )
 
   // * Data Hazard Detection, add vector support * //
-  // TODO: add data hazard detection for vector inst
   // wires
   val is_ID_use_rs1, is_ID_use_rs2, is_EXE_use_rd, is_MEM_use_rd, is_WB_use_rd = Wire(Bool())
   val is_ID_rs1_EXE_rd_overlap, is_ID_rs2_EXE_rd_overlap                       = Wire(Bool())
@@ -407,7 +406,7 @@ class Controller(memDataWidth: Int) extends Module {
 
   // * test ports * //
   io.isHcf      := get_op(io.controller_datapath_io.ID_inst) === HCF
-  io.flush      := actual_branch_result
+  io.flush      := io.controller_datapath_io.ID_flush
   io.stall_DH   := io.controller_datapath_io.IF_stall
   io.stall_MA   := io.controller_datapath_io.stall_memory_access
   io.EXE_branch := get_op(io.controller_datapath_io.EXE_inst) === BRANCH
