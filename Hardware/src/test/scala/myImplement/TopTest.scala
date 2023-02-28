@@ -101,7 +101,7 @@ class TopTest extends AnyFlatSpec with ChiselScalatestTester {
         cycle_count += 1
 
         // * performance counters * //
-        if (dut.io.stall_DH.peekBoolean() == false) inst_count += 1
+        if (dut.io.stall_DH.peekBoolean() == false && dut.io.stall_MA.peekBoolean() == false) inst_count += 1
         if (dut.io.EXE_branch.peekBoolean()) conditional_branch_count += 1
         if (dut.io.EXE_branch.peekBoolean() && (!dut.io.E_branch_taken.peekBoolean())) conditional_branch_hit_count += 1
         if (dut.io.EXE_jump.peekBoolean()) unconditional_branch_count += 1
@@ -176,7 +176,7 @@ class TopTest extends AnyFlatSpec with ChiselScalatestTester {
       println("")
 
       println("=============== Performance Analysis ===============")
-      println(f"CPI : ${cycle_count.asInstanceOf[Double] / inst_count.asInstanceOf[Double]}%.3f")
+      println(f"CPI: ${cycle_count.asInstanceOf[Double] / inst_count.asInstanceOf[Double]}%.3f")
       println(
         f"Average Memory Read Request Stall Cycle: ${mem_read_stall_count.asInstanceOf[Double] / mem_read_request_count.asInstanceOf[Double]}%.3f"
       )
